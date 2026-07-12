@@ -12,9 +12,9 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 app.use(express.static("public"));
-import authRoutes from './routes/authRoutes.js';
-import orgRoutes from './routes/orgRoutes.js';
-import operationsRoutes from './routes/operationsRoutes.js';
+import authRoutes from './routes/authRoutes.routes.js';
+import orgRoutes from './routes/orgRoutes.routes.js';
+import operationsRoutes from './routes/operationsRoutes.routes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/org', orgRoutes);
