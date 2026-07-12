@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
 import { useAppStore } from './store/appStore';
+import { useThemeStore } from './store/themeStore';
 
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -16,11 +17,13 @@ import Notifications from './pages/Notifications';
 
 function App() {
   const syncBackendData = useAppStore((state) => state.syncBackendData);
+  const initTheme = useThemeStore((state) => state.initTheme);
 
   useEffect(() => {
+    initTheme();
     // Automatically synchronize with backend Express server on mount
     syncBackendData();
-  }, [syncBackendData]);
+  }, [initTheme, syncBackendData]);
 
   return (
     <Router>
