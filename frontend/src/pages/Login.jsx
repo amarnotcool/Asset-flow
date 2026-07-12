@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { authApi } from '../api';
 import { User } from 'lucide-react';
+import ThemeToggle from '../components/ui/ThemeToggle';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -67,7 +68,8 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen w-screen flex items-center justify-center bg-gradient-to-br from-[#f0f4f8] to-[#d9e2ec] p-4">
+    <div className="min-h-screen w-screen flex items-center justify-center bg-bg-primary p-4 relative">
+      <ThemeToggle className="absolute top-6 right-6" />
       <div className="card w-full max-w-[400px] border border-border-color rounded-xl p-8 flex flex-col shadow-lg">
         {/* Header */}
         <div className="text-center mb-8">

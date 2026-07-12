@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, Bell, User } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import ThemeToggle from '../ui/ThemeToggle';
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,8 +65,8 @@ const Navbar = () => {
         <h2 className="text-lg font-semibold text-text-primary">{getPageTitle(location.pathname)}</h2>
       </div>
 
-      <div className="flex items-center gap-6">
-        <form onSubmit={handleSearchSubmit} className="relative w-64">
+      <div className="flex items-center gap-4">
+        <form onSubmit={handleSearchSubmit} className="relative w-64 mr-2">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
           <input
             ref={searchInputRef}
@@ -76,6 +77,8 @@ const Navbar = () => {
             className="w-full pl-9 pr-3 py-1.5 text-sm border border-border-color rounded-lg bg-bg-primary text-text-primary focus:outline-none focus:border-accent-primary transition-colors"
           />
         </form>
+
+        <ThemeToggle />
 
         <button
           type="button"

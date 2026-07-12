@@ -4,28 +4,28 @@
 @theme {
   --font-sans: 'Inter', sans-serif;
 
-  --color-bg-primary: #f8fafc;
-  --color-bg-secondary: #ffffff;
-  --color-sidebar-bg: #0f172a;
-  --color-sidebar-text: #e2e8f0;
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-sidebar-bg: var(--sidebar-bg);
+  --color-sidebar-text: var(--sidebar-text);
   
-  --color-text-primary: #1e293b;
-  --color-text-secondary: #64748b;
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
   
-  --color-accent-primary: #3b82f6;
-  --color-accent-hover: #2563eb;
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-hover: var(--accent-hover);
   
-  --color-alert-danger: #ef4444;
-  --color-alert-danger-bg: #fef2f2;
-  --color-alert-success: #10b981;
-  --color-alert-success-bg: #ecfdf5;
-  --color-alert-warning: #f59e0b;
-  --color-alert-warning-bg: #fffbeb;
+  --color-alert-danger: var(--alert-danger);
+  --color-alert-danger-bg: var(--alert-danger-bg);
+  --color-alert-success: var(--alert-success);
+  --color-alert-success-bg: var(--alert-success-bg);
+  --color-alert-warning: var(--alert-warning);
+  --color-alert-warning-bg: var(--alert-warning-bg);
 
-  --color-border-color: #e2e8f0;
+  --color-border-color: var(--border-color);
 }
 
-:root {
+:root, .light, [data-theme="light"] {
   --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
   --sidebar-bg: #0f172a;
@@ -43,12 +43,32 @@
   --border-color: #e2e8f0;
 }
 
+.dark, [data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --sidebar-bg: #090e1a;
+  --sidebar-text: #e2e8f0;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --accent-primary: #3b82f6;
+  --accent-hover: #60a5fa;
+  --alert-danger: #f87171;
+  --alert-danger-bg: #451a1a;
+  --alert-success: #34d399;
+  --alert-success-bg: #064e3b;
+  --alert-warning: #fbbf24;
+  --alert-warning-bg: #451a03;
+  --border-color: #334155;
+  color-scheme: dark;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 .btn {
@@ -64,11 +84,11 @@ body {
 }
 
 .card {
-  @apply bg-bg-secondary rounded-xl border border-border-color p-6 shadow-sm;
+  @apply bg-bg-secondary text-text-primary rounded-xl border border-border-color p-6 shadow-sm transition-colors duration-200;
 }
 
 .input, .select {
-  @apply w-full px-3 py-2 border border-border-color rounded-lg text-sm transition-colors duration-200 focus:outline-none focus:border-accent-primary;
+  @apply w-full px-3 py-2 border border-border-color rounded-lg text-sm bg-bg-primary text-text-primary transition-colors duration-200 focus:outline-none focus:border-accent-primary;
 }
 
 .label {
