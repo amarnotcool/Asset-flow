@@ -13,7 +13,9 @@ import AssetDirectory from './pages/AssetDirectory';
 import AllocationTransfer from './pages/AllocationTransfer';
 import ResourceBooking from './pages/ResourceBooking';
 import Maintenance from './pages/Maintenance';
-import { Audit, Reports, Notifications } from './pages/Stubs';
+import Audit from './pages/Audit';
+import Reports from './pages/Reports';
+import Notifications from './pages/Notifications';
 
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
