@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, Plus, QrCode } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 
@@ -15,7 +15,17 @@ const AssetDirectory = () => {
   const [assetCost, setAssetCost] = useState('');
   const [assetCondition, setAssetCondition] = useState('New');
 
+  const searchInputRef = useRef(null);
+  const registerNameRef = useRef(null);
+
   const { assets, categories, registerAsset } = useAppStore();
+
+  // useEffect + useRef: Auto-focus register input when register modal opens
+  useEffect(() => {
+    if (isRegisterModalOpen) {
+      registerNameRef.current?.focus();
+    }
+  }, [isRegisterModalOpen]);
 
   const handleRegisterSubmit = (e) => {
     e.preventDefault();
@@ -48,8 +58,8 @@ const AssetDirectory = () => {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  const thClass = "p-4 text-xs uppercase text-text-secondary font-semibold border-b border-border-color";
-  const tdClass = "p-4 text-sm border-b border-border-color text-text-primary align-middle";
+  const thClass = 'p-4 text-xs uppercase text-text-secondary font-semibold border-b border-border-color';
+  const tdClass = 'p-4 text-sm border-b border-border-color text-text-primary align-middle';
 
   return (
     <div className="flex flex-col">
@@ -68,6 +78,7 @@ const AssetDirectory = () => {
           <div className="flex flex-1 gap-2 relative">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary" />
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search by tag (e.g. AF-0114), asset name, or location..."
               value={searchTerm}
@@ -140,7 +151,9 @@ const AssetDirectory = () => {
                         <QrCode size={14} /> {asset.tag}
                       </span>
                     </td>
-                    <td className={tdClass}><strong>{asset.name}</strong></td>
+                    <td className={tdClass}>
+                      <strong>{asset.name}</strong>
+                    </td>
                     <td className={tdClass}>{asset.category}</td>
                     <td className={tdClass}>
                       <span
@@ -182,6 +195,7 @@ const AssetDirectory = () => {
               <div>
                 <label className="label">Asset Name / Model</label>
                 <input
+                  ref={registerNameRef}
                   type="text"
                   className="input"
                   required

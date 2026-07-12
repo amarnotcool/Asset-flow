@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plus, ArrowRight } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
+import { operationsApi } from '../api';
 
 const Maintenance = () => {
   const columns = ['Pending', 'Approved', 'Technician Assigned', 'In Progress', 'Resolved'];
@@ -12,17 +13,31 @@ const Maintenance = () => {
   const [priorityLevel, setPriorityLevel] = useState('Medium');
   const [issueDescription, setIssueDescription] = useState('');
 
+  const titleInputRef = useRef(null);
   const { maintenanceTickets, assets, raiseTicket, updateTicketStatus } = useAppStore();
 
-  const handleRaiseSubmit = (e) => {
+  // useEffect + useRef: Auto-focus Issue Title input when Raise Request modal opens
+  useEffect(() => {
+    if (isRaiseModalOpen) {
+      titleInputRef.current?.focus();
+    }
+  }, [isRaiseModalOpen]);
+
+  const handleRaiseSubmit = async (e) => {
     e.preventDefault();
     if (issueTitle.trim() && selectedAssetTag) {
-      raiseTicket({
+      const payload = {
         title: issueTitle.trim(),
         asset: selectedAssetTag,
         priority: priorityLevel,
         description: issueDescription.trim() || 'Needs inspection',
-      });
+      };
+      try {
+        await operationsApi.createMaintenanceRequest(payload);
+      } catch {
+        // Fallback local update
+      }
+      raiseTicket(payload);
       setIsRaiseModalOpen(false);
       setIssueTitle('');
       setIssueDescription('');
@@ -58,7 +73,10 @@ const Maintenance = () => {
         {columns.map((col) => {
           const columnTickets = maintenanceTickets.filter((t) => t.status === col);
           return (
-            <div key={col} className="flex-none w-[280px] bg-[#f8fafc] rounded-xl p-4 flex flex-col border border-border-color">
+            <div
+              key={col}
+              className="flex-none w-[280px] bg-[#f8fafc] rounded-xl p-4 flex flex-col border border-border-color"
+            >
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xs font-bold text-text-secondary uppercase">{col}</h3>
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-border-color text-text-primary">
@@ -114,7 +132,8 @@ const Maintenance = () => {
       </div>
 
       <p className="mt-4 text-text-secondary text-xs shrink-0">
-        💡 Advancing a request to 'Approved' sets the asset status to 'Under Maintenance'. Advancing to 'Resolved' restores the asset status to 'Available'.
+        💡 Advancing a request to 'Approved' sets the asset status to 'Under Maintenance'. Advancing to
+        'Resolved' restores the asset status to 'Available'.
       </p>
 
       {/* Raise Ticket Modal */}
@@ -142,6 +161,7 @@ const Maintenance = () => {
               <div>
                 <label className="label">Issue Title</label>
                 <input
+                  ref={titleInputRef}
                   type="text"
                   className="input"
                   required

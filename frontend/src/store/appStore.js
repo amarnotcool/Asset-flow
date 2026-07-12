@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { orgApi, operationsApi } from '../api';
 
 export const useAppStore = create((set) => ({
   departments: [
@@ -125,4 +126,26 @@ export const useAppStore = create((set) => ({
   closeAuditCycle: (auditId) => set((state) => ({
     audits: state.audits.map(audit => audit.id === auditId ? { ...audit, closed: true } : audit)
   })),
+
+  // Backend API Synchronization
+  syncBackendData: async () => {
+    try {
+      const [depts, cats, emps, bookingsRes, maintenanceRes] = await Promise.all([
+        orgApi.getDepartments().catch(() => null),
+        orgApi.getCategories().catch(() => null),
+        orgApi.getEmployees().catch(() => null),
+        operationsApi.getBookings().catch(() => null),
+        operationsApi.getMaintenanceRequests().catch(() => null),
+      ]);
+      set((state) => ({
+        departments: Array.isArray(depts) && depts.length > 0 ? depts : state.departments,
+        categories: Array.isArray(cats) && cats.length > 0 ? cats : state.categories,
+        employees: Array.isArray(emps) && emps.length > 0 ? emps : state.employees,
+        bookings: Array.isArray(bookingsRes) && bookingsRes.length > 0 ? bookingsRes : state.bookings,
+        maintenanceTickets: Array.isArray(maintenanceRes) && maintenanceRes.length > 0 ? maintenanceRes : state.maintenanceTickets,
+      }));
+    } catch (err) {
+      console.warn('Backend API synchronization offline. Using local dynamic state.', err);
+    }
+  },
 }));

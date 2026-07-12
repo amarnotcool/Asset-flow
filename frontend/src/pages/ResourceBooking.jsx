@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, Plus, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
+import { operationsApi } from '../api';
 
 const ResourceBooking = () => {
   // Simple action-oriented useState variables
@@ -11,7 +12,16 @@ const ResourceBooking = () => {
   const [overlapError, setOverlapError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
+  const teamInputRef = useRef(null);
   const { bookings, addBooking } = useAppStore();
+
+  // useEffect + useRef: Auto-dismiss success message or focus team field
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => setSuccessMessage(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   const resourceBookings = bookings.filter((b) => b.resource === selectedResource);
 
@@ -27,7 +37,6 @@ const ResourceBooking = () => {
       const existStart = toMin(booking.startTime);
       const existEnd = toMin(booking.endTime);
 
-      // Overlap condition: start < existEnd && end > existStart
       if (reqStart < existEnd && reqEnd > existStart) {
         return booking;
       }
@@ -35,7 +44,7 @@ const ResourceBooking = () => {
     return null;
   };
 
-  const handleBookingSubmit = (e) => {
+  const handleBookingSubmit = async (e) => {
     e.preventDefault();
     setOverlapError(null);
     setSuccessMessage(null);
@@ -51,13 +60,19 @@ const ResourceBooking = () => {
         `Requested slot (${bookingStartTime}–${bookingEndTime}) overlaps with existing booking (${conflict.startTime}–${conflict.endTime} by ${conflict.bookedBy}). Slot is unavailable.`
       );
     } else {
-      addBooking({
+      const payload = {
         resource: selectedResource,
         startTime: bookingStartTime,
         endTime: bookingEndTime,
         bookedBy: bookedByTeam || 'Staff Member',
         status: 'Confirmed',
-      });
+      };
+      try {
+        await operationsApi.createBooking(payload);
+      } catch {
+        // Fallback local state update
+      }
+      addBooking(payload);
       setSuccessMessage(
         `Booking confirmed for ${selectedResource} from ${bookingStartTime} to ${bookingEndTime}.`
       );
@@ -157,6 +172,7 @@ const ResourceBooking = () => {
             <div>
               <label className="label">Booked By / Team</label>
               <input
+                ref={teamInputRef}
                 type="text"
                 className="input"
                 required

@@ -1,11 +1,17 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { AlertCircle, CheckCircle, ShieldCheck, Lock } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 
 const Audit = () => {
+  const auditTableRef = useRef(null);
   const { audits, updateAuditItemStatus, closeAuditCycle } = useAppStore();
 
   const currentAudit = audits[0]; // Active audit cycle
+
+  // useEffect + useRef: Highlight active audit table container on mount
+  useEffect(() => {
+    auditTableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [currentAudit]);
 
   const handleCycleItemStatus = (item) => {
     if (currentAudit.closed) return;
@@ -22,8 +28,8 @@ const Audit = () => {
     ? currentAudit.items.filter((item) => item.status !== 'Verified').length
     : 0;
 
-  const thClass = "p-4 text-xs uppercase text-text-secondary font-semibold border-b border-border-color";
-  const tdClass = "p-4 text-sm border-b border-border-color text-text-primary align-middle";
+  const thClass = 'p-4 text-xs uppercase text-text-secondary font-semibold border-b border-border-color';
+  const tdClass = 'p-4 text-sm border-b border-border-color text-text-primary align-middle';
 
   return (
     <div className="flex flex-col">
@@ -37,7 +43,7 @@ const Audit = () => {
       </div>
 
       {currentAudit && (
-        <div className="card mb-6">
+        <div ref={auditTableRef} className="card mb-6">
           <div className="flex justify-between items-center mb-4 pb-4 border-b border-border-color">
             <div>
               <div className="flex items-center gap-2">
@@ -115,14 +121,16 @@ const Audit = () => {
             <div className="p-4 rounded-lg text-sm border-l-4 bg-alert-warning-bg text-alert-warning border-l-alert-warning flex items-center gap-2">
               <AlertCircle size={20} className="shrink-0" />
               <span>
-                <strong>{flaggedCount} asset(s) flagged</strong> — discrepancy report generated automatically for management review.
+                <strong>{flaggedCount} asset(s) flagged</strong> — discrepancy report generated
+                automatically for management review.
               </span>
             </div>
           ) : (
             <div className="p-4 rounded-lg text-sm border-l-4 bg-alert-success-bg text-alert-success border-l-alert-success flex items-center gap-2">
               <CheckCircle size={20} className="shrink-0" />
               <span>
-                <strong>All assets verified</strong> — no discrepancies detected in this audit cycle.
+                <strong>All assets verified</strong> — no discrepancies detected in this audit
+                cycle.
               </span>
             </div>
           )}

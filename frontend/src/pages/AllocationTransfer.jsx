@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AlertCircle, CheckCircle2, ArrowRightLeft, Undo2, Check } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
+import { operationsApi } from '../api';
 
 const AllocationTransfer = () => {
   // Simple action-oriented useState variables
@@ -9,7 +10,15 @@ const AllocationTransfer = () => {
   const [transferReason, setTransferReason] = useState('');
   const [actionMessage, setActionMessage] = useState(null);
 
+  const tagInputRef = useRef(null);
   const { assets, employees, allocateAsset, returnAsset } = useAppStore();
+
+  // useEffect + useRef: Auto-dismiss messages after 6 seconds
+  useEffect(() => {
+    if (!actionMessage) return;
+    const timer = setTimeout(() => setActionMessage(null), 6000);
+    return () => clearTimeout(timer);
+  }, [actionMessage]);
 
   const foundAsset = assets.find(
     (a) => a.tag.toUpperCase() === assetTagInput.trim().toUpperCase()
@@ -17,9 +26,18 @@ const AllocationTransfer = () => {
 
   const isConflict = foundAsset && foundAsset.status === 'Allocated';
 
-  const handleAllocateDirect = (e) => {
+  const handleAllocateDirect = async (e) => {
     e.preventDefault();
     if (foundAsset && selectedEmployee) {
+      try {
+        await operationsApi.allocateAsset({
+          assetTag: foundAsset.tag,
+          toUser: selectedEmployee,
+          reason: 'Direct Allocation',
+        });
+      } catch {
+        // Fallback local update
+      }
       allocateAsset(foundAsset.tag, selectedEmployee);
       setActionMessage({
         type: 'success',
@@ -29,9 +47,19 @@ const AllocationTransfer = () => {
     }
   };
 
-  const handleTransferRequest = (e) => {
+  const handleTransferRequest = async (e) => {
     e.preventDefault();
     if (foundAsset && selectedEmployee) {
+      try {
+        await operationsApi.allocateAsset({
+          assetTag: foundAsset.tag,
+          fromUser: foundAsset.holder,
+          toUser: selectedEmployee,
+          reason: transferReason || 'Transfer Request',
+        });
+      } catch {
+        // Fallback
+      }
       allocateAsset(foundAsset.tag, selectedEmployee);
       setActionMessage({
         type: 'success',
@@ -92,6 +120,7 @@ const AllocationTransfer = () => {
                   onClick={() => {
                     setAssetTagInput(a.tag);
                     setActionMessage(null);
+                    tagInputRef.current?.focus();
                   }}
                   className={`py-1.5 px-3 rounded-lg text-xs font-medium border cursor-pointer transition-colors ${
                     assetTagInput.toUpperCase() === a.tag.toUpperCase()
@@ -107,6 +136,7 @@ const AllocationTransfer = () => {
             <div>
               <label className="label">Asset Tag Lookup</label>
               <input
+                ref={tagInputRef}
                 type="text"
                 className="input max-w-sm"
                 placeholder="e.g. AF-0114"

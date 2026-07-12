@@ -1,10 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Download, TrendingUp, PieChart, AlertCircle } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 
 const Reports = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('This Month');
+  const reportRef = useRef(null);
   const { assets, departments, bookings, maintenanceTickets } = useAppStore();
+
+  // useEffect + useRef: Track period changes and scroll report top into view
+  useEffect(() => {
+    reportRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [selectedPeriod]);
 
   const totalAssets = assets.length;
   const availableCount = assets.filter((a) => a.status === 'Available').length;
@@ -16,7 +22,7 @@ const Reports = () => {
   };
 
   return (
-    <div className="flex flex-col">
+    <div ref={reportRef} className="flex flex-col">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Reports & Analytics</h1>

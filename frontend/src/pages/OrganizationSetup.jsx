@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, CheckCircle, XCircle, ShieldAlert } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
+import { orgApi } from '../api';
 
 const OrganizationSetup = () => {
   const [activeTab, setActiveTab] = useState('departments');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const nameInputRef = useRef(null);
 
   // Simple action-oriented useState variables
   const [departmentName, setDepartmentName] = useState('');
@@ -31,6 +33,13 @@ const OrganizationSetup = () => {
     promoteEmployee,
   } = useAppStore();
 
+  // useEffect + useRef: Auto-focus the first input field when Add Modal opens
+  useEffect(() => {
+    if (isAddModalOpen) {
+      nameInputRef.current?.focus();
+    }
+  }, [isAddModalOpen, activeTab]);
+
   const handleOpenAddModal = () => {
     setIsAddModalOpen(true);
   };
@@ -45,38 +54,57 @@ const OrganizationSetup = () => {
     setEmployeeEmail('');
   };
 
-  const handleCreateSubmit = (e) => {
+  const handleCreateSubmit = async (e) => {
     e.preventDefault();
     if (activeTab === 'departments' && departmentName.trim()) {
-      addDepartment({
+      const payload = {
         name: departmentName.trim(),
         head: departmentHead.trim() || 'Unassigned',
         parent: parentDepartment,
         status: 'Active',
-      });
+      };
+      try {
+        await orgApi.createDepartment(payload);
+      } catch {
+        // Fallback to dynamic state
+      }
+      addDepartment(payload);
     } else if (activeTab === 'categories' && categoryName.trim()) {
-      addCategory({
+      const payload = {
         name: categoryName.trim(),
         description: categoryDescription.trim() || 'General equipment',
-      });
+      };
+      try {
+        await orgApi.createCategory(payload);
+      } catch {
+        // Fallback
+      }
+      addCategory(payload);
     } else if (activeTab === 'employees' && employeeName.trim()) {
-      addEmployee({
+      const payload = {
         name: employeeName.trim(),
         email: employeeEmail.trim() || `${employeeName.toLowerCase().replace(/\s+/g, '.')}@company.com`,
         dept: employeeDepartment,
         role: employeeRole,
         status: 'Active',
-      });
+      };
+      addEmployee(payload);
     }
     handleCloseModal();
   };
 
-  const handlePromoteEmployee = (emp) => {
-    const nextRole = emp.role === 'Employee'
-      ? 'Asset Manager'
-      : emp.role === 'Asset Manager'
-      ? 'Department Head'
-      : 'Employee';
+  const handlePromoteEmployee = async (emp) => {
+    const nextRole =
+      emp.role === 'Employee'
+        ? 'Asset Manager'
+        : emp.role === 'Asset Manager'
+        ? 'Department Head'
+        : 'Employee';
+    try {
+      await orgApi.updateEmployeeRole(emp.id, nextRole);
+    } catch {
+      // Fallback
+    }
     promoteEmployee(emp.id, nextRole);
   };
 
@@ -87,32 +115,51 @@ const OrganizationSetup = () => {
         : 'font-medium text-text-secondary hover:text-text-primary'
     }`;
 
-  const thClass = "p-4 text-xs uppercase text-text-secondary font-semibold border-b border-border-color";
-  const tdClass = "p-4 text-sm border-b border-border-color text-text-primary align-middle";
-  const btnIconClass = "bg-transparent border-0 p-2 cursor-pointer rounded transition-colors duration-200 inline-flex items-center justify-center hover:bg-bg-primary";
+  const thClass =
+    'p-4 text-xs uppercase text-text-secondary font-semibold border-b border-border-color';
+  const tdClass =
+    'p-4 text-sm border-b border-border-color text-text-primary align-middle';
+  const btnIconClass =
+    'bg-transparent border-0 p-2 cursor-pointer rounded transition-colors duration-200 inline-flex items-center justify-center hover:bg-bg-primary';
 
   return (
     <div className="flex flex-col">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Organization Setup</h1>
-          <p className="text-sm text-text-secondary mt-1">Configure master departments, asset categories, and employee directory roles</p>
+          <p className="text-sm text-text-secondary mt-1">
+            Configure master departments, asset categories, and employee directory roles
+          </p>
         </div>
         <button onClick={handleOpenAddModal} className="btn btn-primary cursor-pointer">
-          <Plus size={16} /> Add {activeTab === 'departments' ? 'Department' : activeTab === 'categories' ? 'Category' : 'Employee'}
+          <Plus size={16} /> Add{' '}
+          {activeTab === 'departments'
+            ? 'Department'
+            : activeTab === 'categories'
+            ? 'Category'
+            : 'Employee'}
         </button>
       </div>
 
       <div className="card">
         {/* Tabs */}
         <div className="flex border-b-2 border-border-color gap-6 mb-4">
-          <button className={tabBtnClass('departments')} onClick={() => setActiveTab('departments')}>
+          <button
+            className={tabBtnClass('departments')}
+            onClick={() => setActiveTab('departments')}
+          >
             Departments ({departments.length})
           </button>
-          <button className={tabBtnClass('categories')} onClick={() => setActiveTab('categories')}>
+          <button
+            className={tabBtnClass('categories')}
+            onClick={() => setActiveTab('categories')}
+          >
             Categories ({categories.length})
           </button>
-          <button className={tabBtnClass('employees')} onClick={() => setActiveTab('employees')}>
+          <button
+            className={tabBtnClass('employees')}
+            onClick={() => setActiveTab('employees')}
+          >
             Employees Directory ({employees.length})
           </button>
         </div>
@@ -133,17 +180,33 @@ const OrganizationSetup = () => {
               <tbody>
                 {departments.map((dept) => (
                   <tr key={dept.id} className="hover:bg-black/[0.01]">
-                    <td className={tdClass}><strong>{dept.name}</strong></td>
+                    <td className={tdClass}>
+                      <strong>{dept.name}</strong>
+                    </td>
                     <td className={tdClass}>{dept.head}</td>
                     <td className={tdClass}>{dept.parent}</td>
                     <td className={tdClass}>
-                      <span className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${dept.status === 'Active' ? 'bg-alert-success-bg text-alert-success' : 'bg-[#f1f5f9] text-text-secondary'}`}>
-                        {dept.status === 'Active' ? <CheckCircle size={14} className="mr-1"/> : <XCircle size={14} className="mr-1" />}
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
+                          dept.status === 'Active'
+                            ? 'bg-alert-success-bg text-alert-success'
+                            : 'bg-[#f1f5f9] text-text-secondary'
+                        }`}
+                      >
+                        {dept.status === 'Active' ? (
+                          <CheckCircle size={14} className="mr-1" />
+                        ) : (
+                          <XCircle size={14} className="mr-1" />
+                        )}
                         {dept.status}
                       </span>
                     </td>
                     <td className={`${tdClass} text-right`}>
-                      <button onClick={() => deleteDepartment(dept.id)} className={`${btnIconClass} text-alert-danger cursor-pointer`} title="Delete Department">
+                      <button
+                        onClick={() => deleteDepartment(dept.id)}
+                        className={`${btnIconClass} text-alert-danger cursor-pointer`}
+                        title="Delete Department"
+                      >
                         <Trash2 size={16} />
                       </button>
                     </td>
@@ -168,10 +231,16 @@ const OrganizationSetup = () => {
               <tbody>
                 {categories.map((cat) => (
                   <tr key={cat.id} className="hover:bg-black/[0.01]">
-                    <td className={tdClass}><strong>{cat.name}</strong></td>
+                    <td className={tdClass}>
+                      <strong>{cat.name}</strong>
+                    </td>
                     <td className={tdClass}>{cat.description}</td>
                     <td className={`${tdClass} text-right`}>
-                      <button onClick={() => deleteCategory(cat.id)} className={`${btnIconClass} text-alert-danger cursor-pointer`} title="Delete Category">
+                      <button
+                        onClick={() => deleteCategory(cat.id)}
+                        className={`${btnIconClass} text-alert-danger cursor-pointer`}
+                        title="Delete Category"
+                      >
                         <Trash2 size={16} />
                       </button>
                     </td>
@@ -199,15 +268,21 @@ const OrganizationSetup = () => {
               <tbody>
                 {employees.map((emp) => (
                   <tr key={emp.id} className="hover:bg-black/[0.01]">
-                    <td className={tdClass}><strong>{emp.name}</strong></td>
+                    <td className={tdClass}>
+                      <strong>{emp.name}</strong>
+                    </td>
                     <td className={tdClass}>{emp.email}</td>
                     <td className={tdClass}>{emp.dept}</td>
                     <td className={tdClass}>
-                      <span className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
-                        emp.role === 'Department Head' ? 'bg-[#e0f2fe] text-accent-primary' :
-                        emp.role === 'Asset Manager' ? 'bg-alert-success-bg text-alert-success' :
-                        'bg-transparent border border-border-color text-text-primary'
-                      }`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
+                          emp.role === 'Department Head'
+                            ? 'bg-[#e0f2fe] text-accent-primary'
+                            : emp.role === 'Asset Manager'
+                            ? 'bg-alert-success-bg text-alert-success'
+                            : 'bg-transparent border border-border-color text-text-primary'
+                        }`}
+                      >
                         {emp.role}
                       </span>
                     </td>
@@ -221,7 +296,7 @@ const OrganizationSetup = () => {
                         <button
                           onClick={() => handlePromoteEmployee(emp)}
                           className="btn btn-outline py-1 px-2.5 text-xs cursor-pointer flex items-center gap-1"
-                          title="Click to cycle role (Employee -> Asset Manager -> Department Head)"
+                          title="Click to cycle role"
                         >
                           <ShieldAlert size={13} /> Change Role
                         </button>
@@ -240,7 +315,12 @@ const OrganizationSetup = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-bg-secondary rounded-xl shadow-xl max-w-md w-full p-6 border border-border-color">
             <h3 className="text-lg font-bold mb-4">
-              Create New {activeTab === 'departments' ? 'Department' : activeTab === 'categories' ? 'Category' : 'Employee'}
+              Create New{' '}
+              {activeTab === 'departments'
+                ? 'Department'
+                : activeTab === 'categories'
+                ? 'Category'
+                : 'Employee'}
             </h3>
 
             <form onSubmit={handleCreateSubmit} className="flex flex-col gap-4">
@@ -249,6 +329,7 @@ const OrganizationSetup = () => {
                   <div>
                     <label className="label">Department Name</label>
                     <input
+                      ref={nameInputRef}
                       type="text"
                       className="input"
                       required
@@ -275,7 +356,11 @@ const OrganizationSetup = () => {
                       onChange={(e) => setParentDepartment(e.target.value)}
                     >
                       <option value="--">None (Top Level)</option>
-                      {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                      {departments.map((d) => (
+                        <option key={d.id} value={d.name}>
+                          {d.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </>
@@ -286,6 +371,7 @@ const OrganizationSetup = () => {
                   <div>
                     <label className="label">Category Name</label>
                     <input
+                      ref={nameInputRef}
                       type="text"
                       className="input"
                       required
@@ -312,6 +398,7 @@ const OrganizationSetup = () => {
                   <div>
                     <label className="label">Full Name</label>
                     <input
+                      ref={nameInputRef}
                       type="text"
                       className="input"
                       required
@@ -337,7 +424,11 @@ const OrganizationSetup = () => {
                       value={employeeDepartment}
                       onChange={(e) => setEmployeeDepartment(e.target.value)}
                     >
-                      {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                      {departments.map((d) => (
+                        <option key={d.id} value={d.name}>
+                          {d.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div>
@@ -356,11 +447,20 @@ const OrganizationSetup = () => {
               )}
 
               <div className="flex justify-end gap-3 mt-4">
-                <button type="button" onClick={handleCloseModal} className="btn btn-outline cursor-pointer">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="btn btn-outline cursor-pointer"
+                >
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary cursor-pointer">
-                  Create {activeTab === 'departments' ? 'Department' : activeTab === 'categories' ? 'Category' : 'Employee'}
+                  Create{' '}
+                  {activeTab === 'departments'
+                    ? 'Department'
+                    : activeTab === 'categories'
+                    ? 'Category'
+                    : 'Employee'}
                 </button>
               </div>
             </form>

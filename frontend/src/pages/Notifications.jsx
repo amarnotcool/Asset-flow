@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Package, Calendar, Wrench, ArrowRightLeft, AlertTriangle } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 
 const Notifications = () => {
   // Simple action-oriented useState variable
   const [activeFilter, setActiveFilter] = useState('All');
+  const listContainerRef = useRef(null);
   const { notifications } = useAppStore();
+
+  // useEffect + useRef: Scroll list to top when tab filter changes
+  useEffect(() => {
+    listContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeFilter]);
 
   const extraAlerts = [
     { id: 101, type: 'Alerts', text: 'Overdue return: AF-0221 was due 3 days ago', time: '1d ago' },
@@ -62,30 +68,32 @@ const Notifications = () => {
           ))}
         </div>
 
-        <ul className="list-none flex flex-col">
-          {filteredNotifications.map((item) => (
-            <li
-              key={item.id}
-              className="flex items-center gap-4 py-4 border-b border-border-color last:border-b-0"
-            >
-              <div
-                className={`w-9 h-9 rounded-full flex justify-center items-center shrink-0 ${
-                  item.type === 'Alerts'
-                    ? 'bg-alert-warning-bg text-alert-warning'
-                    : item.type === 'Approvals'
-                    ? 'bg-alert-success-bg text-alert-success'
-                    : 'bg-[#e0f2fe] text-accent-primary'
-                }`}
+        <div ref={listContainerRef} className="max-h-[600px] overflow-y-auto">
+          <ul className="list-none flex flex-col">
+            {filteredNotifications.map((item) => (
+              <li
+                key={item.id}
+                className="flex items-center gap-4 py-4 border-b border-border-color last:border-b-0"
               >
-                {getIconForType(item.type)}
-              </div>
-              <div className="flex-1 flex justify-between items-center w-full">
-                <p className="text-sm font-medium text-text-primary m-0">{item.text}</p>
-                <span className="text-xs text-text-secondary">{item.time}</span>
-              </div>
-            </li>
-          ))}
-        </ul>
+                <div
+                  className={`w-9 h-9 rounded-full flex justify-center items-center shrink-0 ${
+                    item.type === 'Alerts'
+                      ? 'bg-alert-warning-bg text-alert-warning'
+                      : item.type === 'Approvals'
+                      ? 'bg-alert-success-bg text-alert-success'
+                      : 'bg-[#e0f2fe] text-accent-primary'
+                  }`}
+                >
+                  {getIconForType(item.type)}
+                </div>
+                <div className="flex-1 flex justify-between items-center w-full">
+                  <p className="text-sm font-medium text-text-primary m-0">{item.text}</p>
+                  <span className="text-xs text-text-secondary">{item.time}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );

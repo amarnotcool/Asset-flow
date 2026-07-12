@@ -1,11 +1,18 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package, Users, Wrench, Calendar, ArrowRightLeft, Clock, AlertTriangle } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { assets, bookings, maintenanceTickets } = useAppStore();
+  const dashboardRef = useRef(null);
+  const { assets, bookings, maintenanceTickets, syncBackendData } = useAppStore();
+
+  // useEffect + useRef: Sync backend data and reset scroll on mount
+  useEffect(() => {
+    syncBackendData();
+    dashboardRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [syncBackendData]);
 
   const availableCount = assets.filter((a) => a.status === 'Available').length;
   const allocatedCount = assets.filter((a) => a.status === 'Allocated').length;
@@ -15,7 +22,7 @@ const Dashboard = () => {
   const upcomingReturnsCount = 3;
 
   return (
-    <div className="flex flex-col">
+    <div ref={dashboardRef} className="flex flex-col">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Today's Overview</h1>

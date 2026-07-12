@@ -1,13 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, Bell, User } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuthStore();
+
+  // useEffect + useRef: Global keyboard shortcut '/' to focus search input
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (
+        e.key === '/' &&
+        document.activeElement?.tagName !== 'INPUT' &&
+        document.activeElement?.tagName !== 'TEXTAREA'
+      ) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const getPageTitle = (pathname) => {
     switch (pathname) {
@@ -51,10 +68,11 @@ const Navbar = () => {
         <form onSubmit={handleSearchSubmit} className="relative w-64">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
           <input
+            ref={searchInputRef}
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Quick search asset..."
+            placeholder="Quick search asset (press /)..."
             className="w-full pl-9 pr-3 py-1.5 text-sm border border-border-color rounded-lg bg-bg-primary text-text-primary focus:outline-none focus:border-accent-primary transition-colors"
           />
         </form>
