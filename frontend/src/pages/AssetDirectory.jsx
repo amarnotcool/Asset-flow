@@ -14,10 +14,13 @@ const AssetDirectory = () => {
     { id: 3, tag: 'AF-0201', name: 'Ergo Chair', category: 'Furniture', status: 'Available', location: 'Warehouse' },
   ];
 
+  const thClass = "p-4 text-xs uppercase text-text-secondary font-semibold border-b border-border-color";
+  const tdClass = "p-4 text-sm border-b border-border-color text-text-primary align-middle";
+
   return (
-    <div className="asset-dir-page flex-col">
+    <div className="flex flex-col">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="page-title" style={{marginBottom: 0}}>Asset Directory</h1>
+        <h1 className="text-2xl font-bold">Asset Directory</h1>
         <Button><Plus size={16} /> Register Asset</Button>
       </div>
 
@@ -27,42 +30,46 @@ const AssetDirectory = () => {
             placeholder="Search by Tag, serial, or QR code..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1"
+            containerClassName="flex-1"
           />
           <Button variant="outline"><Search size={16}/></Button>
         </div>
         <div className="flex gap-2">
-          <select className="select"><option>Category</option></select>
-          <select className="select"><option>Status</option></select>
-          <select className="select"><option>Department</option></select>
+          <select className="select w-auto"><option>Category</option></select>
+          <select className="select w-auto"><option>Status</option></select>
+          <select className="select w-auto"><option>Department</option></select>
           <Button variant="outline"><Filter size={16}/> Filter</Button>
         </div>
       </Card>
 
       <Card>
-        <div className="table-responsive">
-          <table className="table">
+        <div className="w-full overflow-x-auto">
+          <table className="w-full border-collapse text-left">
             <thead>
               <tr>
-                <th>Tag</th>
-                <th>Name</th>
-                <th>Category</th>
-                <th>Status</th>
-                <th>Location</th>
+                <th className={thClass}>Tag</th>
+                <th className={thClass}>Name</th>
+                <th className={thClass}>Category</th>
+                <th className={thClass}>Status</th>
+                <th className={thClass}>Location</th>
               </tr>
             </thead>
             <tbody>
               {assets.map((asset) => (
-                <tr key={asset.id}>
-                  <td><strong>{asset.tag}</strong></td>
-                  <td>{asset.name}</td>
-                  <td>{asset.category}</td>
-                  <td>
-                    <span className={`badge ${asset.status === 'Available' ? 'badge-success' : asset.status === 'Allocated' ? 'badge-primary' : 'badge-warning'}`}>
+                <tr key={asset.id} className="hover:bg-black/[0.01]">
+                  <td className={tdClass}><strong>{asset.tag}</strong></td>
+                  <td className={tdClass}>{asset.name}</td>
+                  <td className={tdClass}>{asset.category}</td>
+                  <td className={tdClass}>
+                    <span className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
+                      asset.status === 'Available' ? 'bg-alert-success-bg text-alert-success' : 
+                      asset.status === 'Allocated' ? 'bg-[#e0f2fe] text-accent-primary' : 
+                      'bg-alert-warning-bg text-alert-warning'
+                    }`}>
                       {asset.status}
                     </span>
                   </td>
-                  <td>{asset.location}</td>
+                  <td className={tdClass}>{asset.location}</td>
                 </tr>
               ))}
             </tbody>
