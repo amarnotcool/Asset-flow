@@ -108,56 +108,35 @@ const OrganizationSetup = () => {
     promoteEmployee(emp.id, nextRole);
   };
 
-  const tabBtnClass = (tabName) =>
-    `bg-transparent border-0 text-[0.95rem] py-3 px-2 relative transition-colors duration-200 cursor-pointer ${
-      activeTab === tabName
-        ? 'text-accent-primary font-semibold after:absolute after:-bottom-[2px] after:left-0 after:w-full after:h-[2px] after:bg-accent-primary'
-        : 'font-medium text-text-secondary hover:text-text-primary'
-    }`;
-
-  const thClass =
-    'p-4 text-xs uppercase text-text-secondary font-semibold border-b border-border-color';
-  const tdClass =
-    'p-4 text-sm border-b border-border-color text-text-primary align-middle';
-  const btnIconClass =
-    'bg-transparent border-0 p-2 cursor-pointer rounded transition-colors duration-200 inline-flex items-center justify-center hover:bg-bg-primary';
-
   return (
     <div className="flex flex-col">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">Organization Setup</h1>
-          <p className="text-sm text-text-secondary mt-1">
-            Configure master departments, asset categories, and employee directory roles
-          </p>
+          <h1 className="text-2xl font-bold text-text-primary m-0">Organization Setup</h1>
+          <p className="text-sm text-text-secondary mt-1 m-0">Configure master departments, asset categories, and employee directory roles</p>
         </div>
-        <button onClick={handleOpenAddModal} className="btn btn-primary cursor-pointer">
-          <Plus size={16} /> Add{' '}
-          {activeTab === 'departments'
-            ? 'Department'
-            : activeTab === 'categories'
-            ? 'Category'
-            : 'Employee'}
+        <button onClick={handleOpenAddModal} className="btn btn-primary">
+          <Plus size={16} /> Add {activeTab === 'departments' ? 'Department' : activeTab === 'categories' ? 'Category' : 'Employee'}
         </button>
       </div>
 
-      <div className="card">
+      <div className="card p-0 overflow-hidden">
         {/* Tabs */}
-        <div className="flex border-b-2 border-border-color gap-6 mb-4">
+        <div className="tab-bar px-6 pt-2">
           <button
-            className={tabBtnClass('departments')}
+            className={`tab-btn ${activeTab === 'departments' ? 'active' : ''}`}
             onClick={() => setActiveTab('departments')}
           >
             Departments ({departments.length})
           </button>
           <button
-            className={tabBtnClass('categories')}
+            className={`tab-btn ${activeTab === 'categories' ? 'active' : ''}`}
             onClick={() => setActiveTab('categories')}
           >
             Categories ({categories.length})
           </button>
           <button
-            className={tabBtnClass('employees')}
+            className={`tab-btn ${activeTab === 'employees' ? 'active' : ''}`}
             onClick={() => setActiveTab('employees')}
           >
             Employees Directory ({employees.length})
@@ -167,46 +146,30 @@ const OrganizationSetup = () => {
         {/* Tab Content: Departments */}
         {activeTab === 'departments' && (
           <div className="w-full overflow-x-auto">
-            <table className="w-full border-collapse text-left">
+            <table className="w-full border-collapse text-left m-0">
               <thead>
                 <tr>
-                  <th className={thClass}>Department Name</th>
-                  <th className={thClass}>Department Head</th>
-                  <th className={thClass}>Parent Dept</th>
-                  <th className={thClass}>Status</th>
-                  <th className={`${thClass} text-right`}>Actions</th>
+                  <th className="th">Department Name</th>
+                  <th className="th">Department Head</th>
+                  <th className="th">Parent Dept</th>
+                  <th className="th">Status</th>
+                  <th className="th text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {departments.map((dept) => (
                   <tr key={dept.id} className="hover:bg-black/[0.01]">
-                    <td className={tdClass}>
-                      <strong>{dept.name}</strong>
-                    </td>
-                    <td className={tdClass}>{dept.head}</td>
-                    <td className={tdClass}>{dept.parent}</td>
-                    <td className={tdClass}>
-                      <span
-                        className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
-                          dept.status === 'Active'
-                            ? 'bg-alert-success-bg text-alert-success'
-                            : 'bg-[#f1f5f9] text-text-secondary'
-                        }`}
-                      >
-                        {dept.status === 'Active' ? (
-                          <CheckCircle size={14} className="mr-1" />
-                        ) : (
-                          <XCircle size={14} className="mr-1" />
-                        )}
+                    <td className="td"><strong>{dept.name}</strong></td>
+                    <td className="td">{dept.head}</td>
+                    <td className="td">{dept.parent}</td>
+                    <td className="td">
+                      <span className={`badge ${dept.status === 'Active' ? 'badge-success' : 'badge-neutral'}`}>
+                        {dept.status === 'Active' ? <CheckCircle size={14} /> : <XCircle size={14} />}
                         {dept.status}
                       </span>
                     </td>
-                    <td className={`${tdClass} text-right`}>
-                      <button
-                        onClick={() => deleteDepartment(dept.id)}
-                        className={`${btnIconClass} text-alert-danger cursor-pointer`}
-                        title="Delete Department"
-                      >
+                    <td className="td text-right">
+                      <button onClick={() => deleteDepartment(dept.id)} className="btn btn-outline text-alert-danger border-0 hover:bg-alert-danger-bg p-2" title="Delete Department">
                         <Trash2 size={16} />
                       </button>
                     </td>
@@ -220,27 +183,21 @@ const OrganizationSetup = () => {
         {/* Tab Content: Categories */}
         {activeTab === 'categories' && (
           <div className="w-full overflow-x-auto">
-            <table className="w-full border-collapse text-left">
+            <table className="w-full border-collapse text-left m-0">
               <thead>
                 <tr>
-                  <th className={thClass}>Category Name</th>
-                  <th className={thClass}>Description</th>
-                  <th className={`${thClass} text-right`}>Actions</th>
+                  <th className="th">Category Name</th>
+                  <th className="th">Description</th>
+                  <th className="th text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {categories.map((cat) => (
                   <tr key={cat.id} className="hover:bg-black/[0.01]">
-                    <td className={tdClass}>
-                      <strong>{cat.name}</strong>
-                    </td>
-                    <td className={tdClass}>{cat.description}</td>
-                    <td className={`${tdClass} text-right`}>
-                      <button
-                        onClick={() => deleteCategory(cat.id)}
-                        className={`${btnIconClass} text-alert-danger cursor-pointer`}
-                        title="Delete Category"
-                      >
+                    <td className="td"><strong>{cat.name}</strong></td>
+                    <td className="td">{cat.description}</td>
+                    <td className="td text-right">
+                      <button onClick={() => deleteCategory(cat.id)} className="btn btn-outline text-alert-danger border-0 hover:bg-alert-danger-bg p-2" title="Delete Category">
                         <Trash2 size={16} />
                       </button>
                     </td>
@@ -254,48 +211,39 @@ const OrganizationSetup = () => {
         {/* Tab Content: Employees */}
         {activeTab === 'employees' && (
           <div className="w-full overflow-x-auto">
-            <table className="w-full border-collapse text-left">
+            <table className="w-full border-collapse text-left m-0">
               <thead>
                 <tr>
-                  <th className={thClass}>Name</th>
-                  <th className={thClass}>Email</th>
-                  <th className={thClass}>Department</th>
-                  <th className={thClass}>Role</th>
-                  <th className={thClass}>Status</th>
-                  <th className={`${thClass} text-right`}>Actions</th>
+                  <th className="th">Name</th>
+                  <th className="th">Email</th>
+                  <th className="th">Department</th>
+                  <th className="th">Role</th>
+                  <th className="th">Status</th>
+                  <th className="th text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {employees.map((emp) => (
                   <tr key={emp.id} className="hover:bg-black/[0.01]">
-                    <td className={tdClass}>
-                      <strong>{emp.name}</strong>
-                    </td>
-                    <td className={tdClass}>{emp.email}</td>
-                    <td className={tdClass}>{emp.dept}</td>
-                    <td className={tdClass}>
-                      <span
-                        className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
-                          emp.role === 'Department Head'
-                            ? 'bg-[#e0f2fe] text-accent-primary'
-                            : emp.role === 'Asset Manager'
-                            ? 'bg-alert-success-bg text-alert-success'
-                            : 'bg-transparent border border-border-color text-text-primary'
-                        }`}
-                      >
+                    <td className="td"><strong>{emp.name}</strong></td>
+                    <td className="td">{emp.email}</td>
+                    <td className="td">{emp.dept}</td>
+                    <td className="td">
+                      <span className={`badge ${
+                        emp.role === 'Department Head' ? 'badge-info' : 
+                        emp.role === 'Asset Manager' ? 'badge-success' : 'border border-border-color bg-transparent text-text-primary'
+                      }`}>
                         {emp.role}
                       </span>
                     </td>
-                    <td className={tdClass}>
-                      <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap bg-alert-success-bg text-alert-success">
-                        {emp.status}
-                      </span>
+                    <td className="td">
+                      <span className="badge badge-success">{emp.status}</span>
                     </td>
-                    <td className={`${tdClass} text-right`}>
+                    <td className="td text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handlePromoteEmployee(emp)}
-                          className="btn btn-outline py-1 px-2.5 text-xs cursor-pointer flex items-center gap-1"
+                          className="btn btn-outline py-1 px-2.5 text-xs font-semibold"
                           title="Click to cycle role"
                         >
                           <ShieldAlert size={13} /> Change Role
@@ -312,15 +260,10 @@ const OrganizationSetup = () => {
 
       {/* Add Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-bg-secondary rounded-xl shadow-xl max-w-md w-full p-6 border border-border-color">
-            <h3 className="text-lg font-bold mb-4">
-              Create New{' '}
-              {activeTab === 'departments'
-                ? 'Department'
-                : activeTab === 'categories'
-                ? 'Category'
-                : 'Employee'}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="card max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-bold mb-6 text-text-primary">
+              Create New {activeTab === 'departments' ? 'Department' : activeTab === 'categories' ? 'Category' : 'Employee'}
             </h3>
 
             <form onSubmit={handleCreateSubmit} className="flex flex-col gap-4">
@@ -328,39 +271,17 @@ const OrganizationSetup = () => {
                 <>
                   <div>
                     <label className="label">Department Name</label>
-                    <input
-                      ref={nameInputRef}
-                      type="text"
-                      className="input"
-                      required
-                      placeholder="e.g. Finance"
-                      value={departmentName}
-                      onChange={(e) => setDepartmentName(e.target.value)}
-                    />
+                    <input ref={nameInputRef} type="text" className="input" required placeholder="e.g. Finance" value={departmentName} onChange={e => setDepartmentName(e.target.value)} />
                   </div>
                   <div>
                     <label className="label">Department Head</label>
-                    <input
-                      type="text"
-                      className="input"
-                      placeholder="e.g. Sarah Connor"
-                      value={departmentHead}
-                      onChange={(e) => setDepartmentHead(e.target.value)}
-                    />
+                    <input type="text" className="input" placeholder="e.g. Sarah Connor" value={departmentHead} onChange={e => setDepartmentHead(e.target.value)} />
                   </div>
                   <div>
                     <label className="label">Parent Department</label>
-                    <select
-                      className="select"
-                      value={parentDepartment}
-                      onChange={(e) => setParentDepartment(e.target.value)}
-                    >
+                    <select className="select" value={parentDepartment} onChange={e => setParentDepartment(e.target.value)}>
                       <option value="--">None (Top Level)</option>
-                      {departments.map((d) => (
-                        <option key={d.id} value={d.name}>
-                          {d.name}
-                        </option>
-                      ))}
+                      {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
                     </select>
                   </div>
                 </>
@@ -370,25 +291,11 @@ const OrganizationSetup = () => {
                 <>
                   <div>
                     <label className="label">Category Name</label>
-                    <input
-                      ref={nameInputRef}
-                      type="text"
-                      className="input"
-                      required
-                      placeholder="e.g. Peripherals"
-                      value={categoryName}
-                      onChange={(e) => setCategoryName(e.target.value)}
-                    />
+                    <input ref={nameInputRef} type="text" className="input" required placeholder="e.g. Peripherals" value={categoryName} onChange={e => setCategoryName(e.target.value)} />
                   </div>
                   <div>
                     <label className="label">Description / Scope</label>
-                    <textarea
-                      className="input"
-                      rows={3}
-                      placeholder="e.g. Keyboards, mice, docks"
-                      value={categoryDescription}
-                      onChange={(e) => setCategoryDescription(e.target.value)}
-                    />
+                    <textarea className="input" rows={3} placeholder="e.g. Keyboards, mice, docks" value={categoryDescription} onChange={e => setCategoryDescription(e.target.value)} />
                   </div>
                 </>
               )}
@@ -397,47 +304,21 @@ const OrganizationSetup = () => {
                 <>
                   <div>
                     <label className="label">Full Name</label>
-                    <input
-                      ref={nameInputRef}
-                      type="text"
-                      className="input"
-                      required
-                      placeholder="e.g. Rajesh Kumar"
-                      value={employeeName}
-                      onChange={(e) => setEmployeeName(e.target.value)}
-                    />
+                    <input ref={nameInputRef} type="text" className="input" required placeholder="e.g. Rajesh Kumar" value={employeeName} onChange={e => setEmployeeName(e.target.value)} />
                   </div>
                   <div>
                     <label className="label">Email Address</label>
-                    <input
-                      type="email"
-                      className="input"
-                      placeholder="rajesh@company.com"
-                      value={employeeEmail}
-                      onChange={(e) => setEmployeeEmail(e.target.value)}
-                    />
+                    <input type="email" className="input" placeholder="rajesh@company.com" value={employeeEmail} onChange={e => setEmployeeEmail(e.target.value)} />
                   </div>
                   <div>
                     <label className="label">Department</label>
-                    <select
-                      className="select"
-                      value={employeeDepartment}
-                      onChange={(e) => setEmployeeDepartment(e.target.value)}
-                    >
-                      {departments.map((d) => (
-                        <option key={d.id} value={d.name}>
-                          {d.name}
-                        </option>
-                      ))}
+                    <select className="select" value={employeeDepartment} onChange={e => setEmployeeDepartment(e.target.value)}>
+                      {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="label">Initial Role</label>
-                    <select
-                      className="select"
-                      value={employeeRole}
-                      onChange={(e) => setEmployeeRole(e.target.value)}
-                    >
+                    <select className="select" value={employeeRole} onChange={e => setEmployeeRole(e.target.value)}>
                       <option value="Employee">Employee</option>
                       <option value="Asset Manager">Asset Manager</option>
                       <option value="Department Head">Department Head</option>
@@ -446,22 +327,9 @@ const OrganizationSetup = () => {
                 </>
               )}
 
-              <div className="flex justify-end gap-3 mt-4">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="btn btn-outline cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary cursor-pointer">
-                  Create{' '}
-                  {activeTab === 'departments'
-                    ? 'Department'
-                    : activeTab === 'categories'
-                    ? 'Category'
-                    : 'Employee'}
-                </button>
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border-color">
+                <button type="button" onClick={handleCloseModal} className="btn btn-outline">Cancel</button>
+                <button type="submit" className="btn btn-primary">Create {activeTab === 'departments' ? 'Department' : activeTab === 'categories' ? 'Category' : 'Employee'}</button>
               </div>
             </form>
           </div>

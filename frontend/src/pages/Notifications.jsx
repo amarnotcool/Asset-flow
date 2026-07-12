@@ -27,68 +27,56 @@ const Notifications = () => {
 
   const getIconForType = (type) => {
     switch (type) {
-      case 'Allocations':
-        return <Package size={16} />;
-      case 'Approvals':
-        return <Wrench size={16} />;
-      case 'Bookings':
-        return <Calendar size={16} />;
-      case 'Alerts':
-        return <AlertTriangle size={16} />;
-      default:
-        return <ArrowRightLeft size={16} />;
+      case 'Allocations': return <Package size={16} />;
+      case 'Approvals': return <Wrench size={16} />;
+      case 'Bookings': return <Calendar size={16} />;
+      case 'Alerts': return <AlertTriangle size={16} />;
+      default: return <ArrowRightLeft size={16} />;
+    }
+  };
+
+  const getBadgeClassForType = (type) => {
+    switch (type) {
+      case 'Alerts': return 'bg-alert-warning-bg text-alert-warning border-alert-warning/30';
+      case 'Approvals': return 'bg-alert-success-bg text-alert-success border-alert-success/30';
+      case 'Bookings': return 'bg-[#f1f5f9] text-text-secondary border-border-color';
+      case 'Allocations': return 'bg-[#e0f2fe] text-accent-primary border-accent-primary/30';
+      default: return 'bg-bg-primary text-text-primary border-border-color';
     }
   };
 
   return (
-    <div className="flex flex-col">
-      <div className="flex justify-between items-center mb-6">
+    <div className="flex flex-col h-[calc(100vh-8rem)]">
+      <div className="flex justify-between items-center mb-6 shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">Activity Logs & Notifications</h1>
-          <p className="text-sm text-text-secondary mt-1">
-            Real-time feed of asset registrations, allocations, maintenance updates, and alerts
-          </p>
+          <h1 className="text-2xl font-bold text-text-primary m-0">Activity Logs & Notifications</h1>
+          <p className="text-sm text-text-secondary mt-1 m-0">Real-time feed of asset registrations, allocations, maintenance updates, and alerts</p>
         </div>
       </div>
 
-      <div className="card">
-        <div className="flex gap-2 mb-6">
-          {['All', 'Alerts', 'Approvals', 'Bookings', 'Allocations'].map((f) => (
+      <div className="card flex flex-col flex-1 overflow-hidden p-0">
+        <div className="flex gap-3 p-6 border-b border-border-color shrink-0 bg-bg-secondary flex-wrap">
+          {['All', 'Alerts', 'Approvals', 'Bookings', 'Allocations'].map(f => (
             <button
               key={f}
               onClick={() => setActiveFilter(f)}
-              className={`py-1.5 px-4 rounded-full text-sm font-medium transition-colors border cursor-pointer ${
-                activeFilter === f
-                  ? 'bg-[#e0f2fe] text-accent-primary border-transparent'
-                  : 'bg-transparent border-border-color text-text-primary hover:bg-bg-primary'
-              }`}
+              className={`pill ${activeFilter === f ? 'active' : ''}`}
             >
               {f}
             </button>
           ))}
         </div>
 
-        <div ref={listContainerRef} className="max-h-[600px] overflow-y-auto">
-          <ul className="list-none flex flex-col">
+        <div ref={listContainerRef} className="overflow-y-auto flex-1 bg-[#f8fafc] p-6">
+          <ul className="list-none flex flex-col m-0 p-0 relative before:absolute before:inset-0 before:ml-[1.4rem] before:h-full before:w-0.5 before:bg-border-color gap-1">
             {filteredNotifications.map((item) => (
-              <li
-                key={item.id}
-                className="flex items-center gap-4 py-4 border-b border-border-color last:border-b-0"
-              >
-                <div
-                  className={`w-9 h-9 rounded-full flex justify-center items-center shrink-0 ${
-                    item.type === 'Alerts'
-                      ? 'bg-alert-warning-bg text-alert-warning'
-                      : item.type === 'Approvals'
-                      ? 'bg-alert-success-bg text-alert-success'
-                      : 'bg-[#e0f2fe] text-accent-primary'
-                  }`}
-                >
+              <li key={item.id} className="relative pl-14 py-3 group">
+                <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex justify-center items-center border-4 border-[#f8fafc] z-10 transition-transform group-hover:scale-110 ${getBadgeClassForType(item.type)}`}>
                   {getIconForType(item.type)}
                 </div>
-                <div className="flex-1 flex justify-between items-center w-full">
-                  <p className="text-sm font-medium text-text-primary m-0">{item.text}</p>
-                  <span className="text-xs text-text-secondary">{item.time}</span>
+                <div className="bg-bg-secondary border border-border-color rounded-xl p-4 shadow-sm group-hover:border-accent-primary transition-colors flex justify-between items-center">
+                  <p className="text-sm font-semibold text-text-primary m-0">{item.text}</p>
+                  <span className="text-xs font-medium text-text-secondary bg-[#f1f5f9] px-2 py-1 rounded-md">{item.time}</span>
                 </div>
               </li>
             ))}
