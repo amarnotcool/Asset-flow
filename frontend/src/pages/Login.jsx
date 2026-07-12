@@ -15,7 +15,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
-  // useEffect + useRef: Auto-focus email field on mount and view change
   useEffect(() => {
     emailInputRef.current?.focus();
     setErrorMessage(null);
@@ -69,17 +68,17 @@ const Login = () => {
 
   return (
     <div className="min-h-screen w-screen flex items-center justify-center bg-gradient-to-br from-[#f0f4f8] to-[#d9e2ec] p-4">
-      <div className="card w-full max-w-[400px] p-8 shadow-lg flex flex-col border-2 border-border-color">
+      <div className="card w-full max-w-[400px] border border-border-color rounded-xl p-8 flex flex-col shadow-lg">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-xl font-bold text-text-primary mb-6">AssetFlow – {isLoginView ? 'login' : 'sign up'}</h1>
-          <div className="w-16 h-16 rounded-full border-2 border-border-color mx-auto flex items-center justify-center bg-bg-primary">
+          <div className="w-16 h-16 rounded-full border border-border-color mx-auto flex items-center justify-center bg-bg-primary">
             <User size={28} className="text-text-secondary" />
           </div>
         </div>
 
         {errorMessage && (
-          <div className="p-3 mb-4 rounded bg-alert-danger-bg text-alert-danger text-xs">
+          <div className="p-3 mb-4 rounded-lg border border-alert-danger bg-alert-danger-bg text-alert-danger font-semibold text-xs">
             {errorMessage}
           </div>
         )}
@@ -100,11 +99,6 @@ const Login = () => {
           <div className="flex flex-col gap-1">
             <div className="flex justify-between items-center">
               <label className="label mb-0">Password</label>
-              {isLoginView && (
-                <a href="#" className="text-xs text-text-secondary hover:text-accent-primary transition-colors no-underline">
-                  Forgot password
-                </a>
-              )}
             </div>
             <input
               type="password"
@@ -113,38 +107,44 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            {isLoginView && (
+              <div className="text-right mt-1">
+                <a href="#" className="text-xs font-semibold text-text-secondary hover:text-accent-primary transition-colors no-underline">
+                  Forgot password
+                </a>
+              </div>
+            )}
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn btn-primary w-full py-3 text-base mt-1"
-          >
-            {loading ? 'Authenticating...' : isLoginView ? 'Sign In' : 'Create Account'}
-          </button>
-        </form>
-
-        <div className="mt-8 pt-6 border-t border-border-color">
-          {isLoginView ? (
-            <div className="text-center">
-              <p className="text-sm text-text-secondary mb-1">New here?</p>
-              <div className="border border-border-color rounded-lg p-3 mb-4 bg-bg-primary">
-                <p className="text-xs text-text-primary leading-relaxed m-0">
-                  Sign up creates an employee account.<br/>Admin roles assigned later.
-                </p>
+          <div className="mt-4 flex flex-col gap-3">
+            {isLoginView ? (
+              <div>
+                <p className="text-xs font-semibold text-text-secondary mb-1">New here?</p>
+                <div className="border border-border-color rounded-lg p-3 bg-bg-primary">
+                  <p className="text-xs text-text-primary leading-relaxed m-0">
+                    Sign up creates an employee account.<br/>Admin roles assigned later.
+                  </p>
+                </div>
               </div>
-            </div>
-          ) : (
-            <p className="text-sm text-text-secondary text-center mb-3">Already have an account?</p>
-          )}
-          <button 
-            type="button" 
-            className="btn btn-outline w-full py-2.5" 
-            onClick={() => setIsLoginView(!isLoginView)}
-          >
-            {isLoginView ? 'Create Account' : 'Sign In instead'}
-          </button>
-        </div>
+            ) : (
+              <p className="text-xs font-semibold text-text-secondary mb-1">Already have an account?</p>
+            )}
+            <button 
+              type="button" 
+              className="btn btn-outline w-full" 
+              onClick={() => setIsLoginView(!isLoginView)}
+            >
+              {isLoginView ? 'Create Account' : 'Sign In instead'}
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn btn-primary w-full py-2.5"
+            >
+              {loading ? 'Authenticating...' : isLoginView ? 'Sign In' : 'Create Account'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

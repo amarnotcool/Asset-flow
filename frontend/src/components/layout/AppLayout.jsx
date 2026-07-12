@@ -35,11 +35,14 @@ const AppLayout = () => {
     <div className="flex h-screen w-screen overflow-hidden">
       {/* Sidebar */}
       <aside className="w-[260px] bg-sidebar-bg text-sidebar-text flex flex-col shrink-0">
-        <div className="p-6 border-b border-white/10 shrink-0">
-          <h2 className="text-2xl font-bold text-white m-0">AssetFlow</h2>
+        <div className="p-6 border-b border-white/10 shrink-0 flex items-center gap-3">
+          <div className="bg-accent-primary rounded-full w-10 h-10 flex items-center justify-center text-white font-bold">
+            AF
+          </div>
+          <h2 className="text-xl font-bold text-white m-0">AssetFlow</h2>
         </div>
         
-        <nav className="flex flex-col py-4 flex-1 overflow-y-auto">
+        <nav className="flex flex-col py-4 flex-1 overflow-y-auto gap-1">
           <NavLink to="/" end className={navItemClass}>
             <LayoutDashboard size={20} /> Dashboard
           </NavLink>
@@ -82,12 +85,12 @@ const AppLayout = () => {
           </NavLink>
         </nav>
 
-        <div className="p-6 border-t border-white/10 shrink-0 flex justify-between items-center">
+        <div className="p-6 border-t border-white/10 shrink-0 flex justify-between items-center bg-sidebar-bg">
           <div className="flex flex-col">
             <span className="font-semibold text-white text-sm">{user?.name || 'User'}</span>
             <span className="text-xs text-white/60">{user?.role || 'Role'}</span>
           </div>
-          <button className="bg-transparent border-0 text-white/60 flex items-center transition-colors duration-200 hover:text-white cursor-pointer p-0" onClick={handleLogout}>
+          <button className="bg-transparent border-0 text-white/60 flex items-center gap-1 transition-colors duration-200 hover:text-white cursor-pointer" onClick={handleLogout}>
             <LogOut size={18} /> Logout
           </button>
         </div>
