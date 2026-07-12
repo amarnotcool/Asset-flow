@@ -1,27 +1,84 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, XCircle, ShieldAlert } from 'lucide-react';
+import { useAppStore } from '../store/appStore';
 
 const OrganizationSetup = () => {
   const [activeTab, setActiveTab] = useState('departments');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // Mock Data
-  const departments = [
-    { id: 1, name: 'Engineering', head: 'Aditi Rao', parent: '--', status: 'Active' },
-    { id: 2, name: 'Facilities', head: 'Rohan Mehta', parent: '--', status: 'Active' },
-    { id: 3, name: 'Field ops (West)', head: 'Samir Iqbal', parent: 'Field Ops', status: 'Inactive' },
-  ];
+  // Simple action-oriented useState variables
+  const [departmentName, setDepartmentName] = useState('');
+  const [departmentHead, setDepartmentHead] = useState('');
+  const [parentDepartment, setParentDepartment] = useState('--');
 
-  const categories = [
-    { id: 1, name: 'Electronics', description: 'Laptops, screens, accessories' },
-    { id: 2, name: 'Furniture', description: 'Desks, chairs, whiteboards' },
-    { id: 3, name: 'Vehicles', description: 'Company cars and vans' },
-  ];
+  const [categoryName, setCategoryName] = useState('');
+  const [categoryDescription, setCategoryDescription] = useState('');
 
-  const employees = [
-    { id: 1, name: 'Priya Shah', email: 'priya@company.com', dept: 'Engineering', role: 'Employee', status: 'Active' },
-    { id: 2, name: 'Arjun Nair', email: 'arjun@company.com', dept: 'Facilities', role: 'Asset Manager', status: 'Active' },
-    { id: 3, name: 'Aditi Rao', email: 'aditi@company.com', dept: 'Engineering', role: 'Department Head', status: 'Active' },
-  ];
+  const [employeeName, setEmployeeName] = useState('');
+  const [employeeEmail, setEmployeeEmail] = useState('');
+  const [employeeDepartment, setEmployeeDepartment] = useState('Engineering');
+  const [employeeRole, setEmployeeRole] = useState('Employee');
+
+  const {
+    departments,
+    categories,
+    employees,
+    addDepartment,
+    deleteDepartment,
+    addCategory,
+    deleteCategory,
+    addEmployee,
+    promoteEmployee,
+  } = useAppStore();
+
+  const handleOpenAddModal = () => {
+    setIsAddModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsAddModalOpen(false);
+    setDepartmentName('');
+    setDepartmentHead('');
+    setCategoryName('');
+    setCategoryDescription('');
+    setEmployeeName('');
+    setEmployeeEmail('');
+  };
+
+  const handleCreateSubmit = (e) => {
+    e.preventDefault();
+    if (activeTab === 'departments' && departmentName.trim()) {
+      addDepartment({
+        name: departmentName.trim(),
+        head: departmentHead.trim() || 'Unassigned',
+        parent: parentDepartment,
+        status: 'Active',
+      });
+    } else if (activeTab === 'categories' && categoryName.trim()) {
+      addCategory({
+        name: categoryName.trim(),
+        description: categoryDescription.trim() || 'General equipment',
+      });
+    } else if (activeTab === 'employees' && employeeName.trim()) {
+      addEmployee({
+        name: employeeName.trim(),
+        email: employeeEmail.trim() || `${employeeName.toLowerCase().replace(/\s+/g, '.')}@company.com`,
+        dept: employeeDepartment,
+        role: employeeRole,
+        status: 'Active',
+      });
+    }
+    handleCloseModal();
+  };
+
+  const handlePromoteEmployee = (emp) => {
+    const nextRole = emp.role === 'Employee'
+      ? 'Asset Manager'
+      : emp.role === 'Asset Manager'
+      ? 'Department Head'
+      : 'Employee';
+    promoteEmployee(emp.id, nextRole);
+  };
 
   const tabBtnClass = (tabName) =>
     `bg-transparent border-0 text-[0.95rem] py-3 px-2 relative transition-colors duration-200 cursor-pointer ${
@@ -36,9 +93,12 @@ const OrganizationSetup = () => {
 
   return (
     <div className="flex flex-col">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Organization Setup</h1>
-        <button className="btn btn-primary">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-text-primary">Organization Setup</h1>
+          <p className="text-sm text-text-secondary mt-1">Configure master departments, asset categories, and employee directory roles</p>
+        </div>
+        <button onClick={handleOpenAddModal} className="btn btn-primary cursor-pointer">
           <Plus size={16} /> Add {activeTab === 'departments' ? 'Department' : activeTab === 'categories' ? 'Category' : 'Employee'}
         </button>
       </div>
@@ -46,23 +106,14 @@ const OrganizationSetup = () => {
       <div className="card">
         {/* Tabs */}
         <div className="flex border-b-2 border-border-color gap-6 mb-4">
-          <button 
-            className={tabBtnClass('departments')}
-            onClick={() => setActiveTab('departments')}
-          >
-            Departments
+          <button className={tabBtnClass('departments')} onClick={() => setActiveTab('departments')}>
+            Departments ({departments.length})
           </button>
-          <button 
-            className={tabBtnClass('categories')}
-            onClick={() => setActiveTab('categories')}
-          >
-            Categories
+          <button className={tabBtnClass('categories')} onClick={() => setActiveTab('categories')}>
+            Categories ({categories.length})
           </button>
-          <button 
-            className={tabBtnClass('employees')}
-            onClick={() => setActiveTab('employees')}
-          >
-            Employees Directory
+          <button className={tabBtnClass('employees')} onClick={() => setActiveTab('employees')}>
+            Employees Directory ({employees.length})
           </button>
         </div>
 
@@ -92,8 +143,9 @@ const OrganizationSetup = () => {
                       </span>
                     </td>
                     <td className={`${tdClass} text-right`}>
-                      <button className={`${btnIconClass} text-accent-primary`}><Edit2 size={16} /></button>
-                      <button className={`${btnIconClass} text-alert-danger`}><Trash2 size={16} /></button>
+                      <button onClick={() => deleteDepartment(dept.id)} className={`${btnIconClass} text-alert-danger cursor-pointer`} title="Delete Department">
+                        <Trash2 size={16} />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -119,8 +171,9 @@ const OrganizationSetup = () => {
                     <td className={tdClass}><strong>{cat.name}</strong></td>
                     <td className={tdClass}>{cat.description}</td>
                     <td className={`${tdClass} text-right`}>
-                      <button className={`${btnIconClass} text-accent-primary`}><Edit2 size={16} /></button>
-                      <button className={`${btnIconClass} text-alert-danger`}><Trash2 size={16} /></button>
+                      <button onClick={() => deleteCategory(cat.id)} className={`${btnIconClass} text-alert-danger cursor-pointer`} title="Delete Category">
+                        <Trash2 size={16} />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -150,19 +203,28 @@ const OrganizationSetup = () => {
                     <td className={tdClass}>{emp.email}</td>
                     <td className={tdClass}>{emp.dept}</td>
                     <td className={tdClass}>
-                      <span className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${emp.role.includes('Admin') || emp.role.includes('Head') || emp.role.includes('Manager') ? 'bg-[#e0f2fe] text-accent-primary' : 'bg-transparent border border-border-color text-text-primary'}`}>
+                      <span className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
+                        emp.role === 'Department Head' ? 'bg-[#e0f2fe] text-accent-primary' :
+                        emp.role === 'Asset Manager' ? 'bg-alert-success-bg text-alert-success' :
+                        'bg-transparent border border-border-color text-text-primary'
+                      }`}>
                         {emp.role}
                       </span>
                     </td>
                     <td className={tdClass}>
-                      <span className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${emp.status === 'Active' ? 'bg-alert-success-bg text-alert-success' : 'bg-[#f1f5f9] text-text-secondary'}`}>
+                      <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap bg-alert-success-bg text-alert-success">
                         {emp.status}
                       </span>
                     </td>
                     <td className={`${tdClass} text-right`}>
                       <div className="flex items-center justify-end gap-2">
-                        <button className="btn btn-outline py-1 px-2 text-xs">Promote</button>
-                        <button className={`${btnIconClass} text-accent-primary`}><Edit2 size={16} /></button>
+                        <button
+                          onClick={() => handlePromoteEmployee(emp)}
+                          className="btn btn-outline py-1 px-2.5 text-xs cursor-pointer flex items-center gap-1"
+                          title="Click to cycle role (Employee -> Asset Manager -> Department Head)"
+                        >
+                          <ShieldAlert size={13} /> Change Role
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -171,8 +233,140 @@ const OrganizationSetup = () => {
             </table>
           </div>
         )}
-
       </div>
+
+      {/* Add Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-bg-secondary rounded-xl shadow-xl max-w-md w-full p-6 border border-border-color">
+            <h3 className="text-lg font-bold mb-4">
+              Create New {activeTab === 'departments' ? 'Department' : activeTab === 'categories' ? 'Category' : 'Employee'}
+            </h3>
+
+            <form onSubmit={handleCreateSubmit} className="flex flex-col gap-4">
+              {activeTab === 'departments' && (
+                <>
+                  <div>
+                    <label className="label">Department Name</label>
+                    <input
+                      type="text"
+                      className="input"
+                      required
+                      placeholder="e.g. Finance"
+                      value={departmentName}
+                      onChange={(e) => setDepartmentName(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Department Head</label>
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder="e.g. Sarah Connor"
+                      value={departmentHead}
+                      onChange={(e) => setDepartmentHead(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Parent Department</label>
+                    <select
+                      className="select"
+                      value={parentDepartment}
+                      onChange={(e) => setParentDepartment(e.target.value)}
+                    >
+                      <option value="--">None (Top Level)</option>
+                      {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                    </select>
+                  </div>
+                </>
+              )}
+
+              {activeTab === 'categories' && (
+                <>
+                  <div>
+                    <label className="label">Category Name</label>
+                    <input
+                      type="text"
+                      className="input"
+                      required
+                      placeholder="e.g. Peripherals"
+                      value={categoryName}
+                      onChange={(e) => setCategoryName(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Description / Scope</label>
+                    <textarea
+                      className="input"
+                      rows={3}
+                      placeholder="e.g. Keyboards, mice, docks"
+                      value={categoryDescription}
+                      onChange={(e) => setCategoryDescription(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
+
+              {activeTab === 'employees' && (
+                <>
+                  <div>
+                    <label className="label">Full Name</label>
+                    <input
+                      type="text"
+                      className="input"
+                      required
+                      placeholder="e.g. Rajesh Kumar"
+                      value={employeeName}
+                      onChange={(e) => setEmployeeName(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Email Address</label>
+                    <input
+                      type="email"
+                      className="input"
+                      placeholder="rajesh@company.com"
+                      value={employeeEmail}
+                      onChange={(e) => setEmployeeEmail(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Department</label>
+                    <select
+                      className="select"
+                      value={employeeDepartment}
+                      onChange={(e) => setEmployeeDepartment(e.target.value)}
+                    >
+                      {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label">Initial Role</label>
+                    <select
+                      className="select"
+                      value={employeeRole}
+                      onChange={(e) => setEmployeeRole(e.target.value)}
+                    >
+                      <option value="Employee">Employee</option>
+                      <option value="Asset Manager">Asset Manager</option>
+                      <option value="Department Head">Department Head</option>
+                    </select>
+                  </div>
+                </>
+              )}
+
+              <div className="flex justify-end gap-3 mt-4">
+                <button type="button" onClick={handleCloseModal} className="btn btn-outline cursor-pointer">
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary cursor-pointer">
+                  Create {activeTab === 'departments' ? 'Department' : activeTab === 'categories' ? 'Category' : 'Employee'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

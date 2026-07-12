@@ -13,6 +13,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import Navbar from './Navbar';
 
 const AppLayout = () => {
   const { user, logout } = useAuthStore();
@@ -94,9 +95,7 @@ const AppLayout = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col bg-bg-primary overflow-hidden">
-        <header className="top-header">
-          {/* We can place contextual title or search here later */}
-        </header>
+        <Navbar />
         <div className="flex-1 p-8 overflow-y-auto">
           <Outlet />
         </div>
