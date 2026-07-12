@@ -126,13 +126,13 @@ const Reports = () => {
               <span className="chart-bar-label">Available</span>
             </div>
             <div className="chart-bar-group">
-              <div className="chart-bar" style={{ background: 'linear-gradient(180deg, var(--alert-warning), #fcd34d)', height: `${(maintenanceCount / (totalAssets || 1)) * 100}%` }}></div>
+              <div className="chart-bar" style={{ background: 'var(--alert-warning)', height: `${(maintenanceCount / (totalAssets || 1)) * 100}%` }}></div>
               <span className="chart-bar-value">{maintenanceCount}</span>
               <span className="chart-bar-label">Maintenance</span>
             </div>
             
             <div className="chart-bar-group">
-              <div className="chart-bar" style={{ background: 'linear-gradient(180deg, var(--alert-danger), #fca5a5)', height: `${(lostCount / (totalAssets || 1)) * 100}%` }}></div>
+              <div className="chart-bar" style={{ background: 'var(--alert-danger)', height: `${(lostCount / (totalAssets || 1)) * 100}%` }}></div>
               <span className="chart-bar-value">{lostCount}</span>
               <span className="chart-bar-label">Lost/Retired</span>
             </div>
@@ -194,7 +194,7 @@ const Reports = () => {
                     <span className="text-xs text-text-secondary truncate block">{ticket.issue_description || ticket.asset_name}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="badge badge-warning text-[10px] border-alert-warning/30 shadow-sm">{ticket.status}</span>
+                    <span className="badge badge-warning text-[10px] border-alert-warning/30">{ticket.status}</span>
                   </div>
                 </li>
               ))

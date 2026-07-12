@@ -123,7 +123,7 @@ const AllocationTransfer = () => {
               </div>
 
               {foundAsset && (
-                <div className="mt-4 p-4 rounded-xl bg-bg-primary border border-border-color text-sm flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm">
+                <div className="mt-4 p-4 rounded-xl bg-bg-primary border border-border-color text-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
                   <div>
                     <span className="font-bold text-text-primary text-base">{foundAsset.name}</span>
                     <span className="text-text-secondary ml-2">• {foundAsset.category_name}</span>
@@ -162,7 +162,7 @@ const AllocationTransfer = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div>
                         <label className="label">Current Holder (From)</label>
-                        <input type="text" className="input bg-[#f1f5f9] text-text-secondary cursor-not-allowed" value={foundAsset.holder_name || ''} disabled readOnly />
+                        <input type="text" className="input bg-bg-primary text-text-secondary cursor-not-allowed" value={foundAsset.holder_name || ''} disabled readOnly />
                       </div>
                       <div>
                         <label className="label">Transfer To Employee</label>

@@ -183,7 +183,7 @@ const Login = () => {
   return (
     <div className="min-h-screen w-screen flex items-center justify-center bg-bg-primary p-4 relative">
       <ThemeToggle className="absolute top-6 right-6" />
-      <div className="card w-full max-w-[400px] border border-border-color rounded-xl p-8 flex flex-col shadow-lg">
+      <div className="card w-full max-w-[400px] border border-border-color rounded-2xl p-8 flex flex-col">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-xl font-bold text-text-primary mb-6">AssetFlow – {getTitle()}</h1>

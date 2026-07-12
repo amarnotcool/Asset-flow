@@ -114,7 +114,7 @@ const Notifications = () => {
                   <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex justify-center items-center border-4 border-bg-primary z-10 transition-transform group-hover:scale-110 ${getBadgeClassForType(item.type)}`}>
                     {getIconForType(item.type)}
                   </div>
-                  <div className={`bg-bg-secondary border rounded-xl p-4 shadow-sm transition-colors flex flex-col sm:flex-row justify-between sm:items-center gap-3 ${!item.read ? 'border-accent-primary' : 'border-border-color'}`}>
+                  <div className={`bg-bg-secondary border rounded-xl p-4 transition-colors flex flex-col sm:flex-row justify-between sm:items-center gap-3 ${!item.read ? 'border-accent-primary' : 'border-border-color'}`}>
                     <div className="flex items-center gap-3">
                       {!item.read && <span className="w-2 h-2 rounded-full bg-accent-primary shrink-0"></span>}
                       <p className={`text-sm m-0 ${!item.read ? 'font-bold text-text-primary' : 'font-medium text-text-secondary'}`}>{item.text}</p>

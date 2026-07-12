@@ -181,7 +181,7 @@ const ResourceBooking = () => {
           <div className="flex flex-col gap-4">
             {resourceBookings.length > 0 ? (
               resourceBookings.map((b) => (
-                <div key={b.id} className={`p-4 rounded-xl bg-bg-primary border flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 relative overflow-hidden transition-colors ${b.status === 'Cancelled' ? 'border-border-color opacity-60' : 'border-border-color hover:border-accent-primary shadow-sm'}`}>
+                <div key={b.id} className={`p-4 rounded-xl bg-bg-primary border flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 relative overflow-hidden transition-colors ${b.status === 'Cancelled' ? 'border-border-color opacity-60' : 'border-border-color hover:border-accent-primary'}`}>
                   {b.status !== 'Cancelled' && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-accent-primary"></div>}
                   
                   <div className={b.status !== 'Cancelled' ? 'pl-2' : ''}>

@@ -112,7 +112,7 @@ const AssetDirectory = () => {
       <div className="card mb-6 p-4">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           <div className="flex flex-1 gap-2 relative">
-            <Search size={0} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary" />
+            <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary" />
             <input
               ref={searchInputRef}
               type="text"
@@ -149,7 +149,7 @@ const AssetDirectory = () => {
       </div>
 
       {/* Table */}
-      <div className="card p-0 overflow-hidden shadow-sm">
+      <div className="card p-0 overflow-hidden">
         <div className="w-full overflow-x-auto">
           <table className="w-full border-collapse text-left m-0">
             <thead>
