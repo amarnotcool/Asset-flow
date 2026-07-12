@@ -90,6 +90,14 @@ export const operationsApi = {
     const response = await axiosClient.post('/operations/transfers', transferData);
     return response.data.data;
   },
+  approveTransfer: async (id) => {
+    const response = await axiosClient.put(`/operations/transfers/${id}/approve`);
+    return response.data.data;
+  },
+  rejectTransfer: async (id) => {
+    const response = await axiosClient.put(`/operations/transfers/${id}/reject`);
+    return response.data.data;
+  },
   getBookings: async () => {
     const response = await axiosClient.get('/operations/bookings');
     return response.data.data;

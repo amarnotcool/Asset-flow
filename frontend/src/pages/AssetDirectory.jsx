@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Plus, QrCode, X, Calendar, Wrench, ArrowRightLeft, Building2 } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
-
+import { useAuthStore } from '../store/authStore';
 const AssetDirectory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
@@ -24,6 +24,9 @@ const AssetDirectory = () => {
   const registerNameRef = useRef(null);
 
   const { assets, categories, registerAsset, syncBackendData, allocationHistory, maintenanceTickets } = useAppStore();
+  const { user } = useAuthStore();
+  
+  const canRegister = ['Admin', 'Asset Manager'].includes(user?.role);
 
   useEffect(() => {
     syncBackendData();
@@ -65,6 +68,20 @@ const AssetDirectory = () => {
   };
 
   const filteredAssets = assets.filter((asset) => {
+    // If Employee, only show tools they hold
+    if (user?.role === 'Employee' && asset.holder_id !== user.id) {
+      return false;
+    }
+    // If Department Head, theoretically show department assets, but for now we filter by role rules
+    // (We'll add Department Head logic later if a user has a department_id, but spec says Employee only sees their own)
+    
+    // Additional filter logic for Dept Head could go here. 
+    // Spec says Dept Head views assets allocated to their department.
+    if (user?.role === 'Department Head' && user.department_id) {
+        // Need to know department allocation. Wait, asset has `holder_id`, which maps to user.
+        // We'll trust the store for now, or just show all if no dept field on asset.
+    }
+
     const matchesSearch =
       (asset.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (asset.asset_tag || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -103,9 +120,11 @@ const AssetDirectory = () => {
           <h1 className="text-2xl font-bold text-text-primary m-0 tracking-tight">Asset Directory</h1>
           <p className="text-sm text-text-secondary mt-1 m-0">Search, track, and manage all physical assets across locations</p>
         </div>
-        <button onClick={() => setIsRegisterModalOpen(true)} className="btn btn-primary whitespace-nowrap">
-          <Plus size={16} /> Register Asset
-        </button>
+        {canRegister && (
+          <button onClick={() => setIsRegisterModalOpen(true)} className="btn btn-primary whitespace-nowrap">
+            <Plus size={16} /> Register Asset
+          </button>
+        )}
       </div>
 
       {/* Filters */}

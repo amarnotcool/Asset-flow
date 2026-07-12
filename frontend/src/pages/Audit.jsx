@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, AlertCircle, CheckCircle, ShieldCheck, Lock, ChevronDown, ChevronRight, FileWarning, ClipboardCheck, Calendar, Users, Search } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
+import { useAuthStore } from '../store/authStore';
 
 const Audit = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -21,6 +22,8 @@ const Audit = () => {
     audits, departments, employees, assets,
     createAudit, updateAuditItemStatus, closeAuditCycle, syncBackendData
   } = useAppStore();
+  const { user } = useAuthStore();
+  const canManageAudit = ['Admin', 'Asset Manager'].includes(user?.role);
 
   useEffect(() => { syncBackendData(); }, []);
 
@@ -109,9 +112,11 @@ const Audit = () => {
           <h1 className="text-2xl font-bold text-text-primary m-0 tracking-tight">Asset Audit & Verification</h1>
           <p className="text-sm text-text-secondary mt-1 m-0">Run structured verification cycles with assigned auditors and auto-generated discrepancy reports</p>
         </div>
-        <button onClick={() => setIsCreateModalOpen(true)} className="btn btn-primary whitespace-nowrap">
-          <Plus size={16} /> New Audit Cycle
-        </button>
+        {canManageAudit && (
+          <button onClick={() => setIsCreateModalOpen(true)} className="btn btn-primary whitespace-nowrap">
+            <Plus size={16} /> New Audit Cycle
+          </button>
+        )}
       </div>
 
       {/* Summary Row */}
@@ -237,7 +242,7 @@ const Audit = () => {
                               <span className={`badge ${getStatusBadge(item.status)}`}>{item.status}</span>
                             </td>
                             <td className="td text-right">
-                              {!cycle.closed ? (
+                              {!cycle.closed && canManageAudit ? (
                                 <button
                                   onClick={(e) => { e.stopPropagation(); handleCycleItemStatus(cycle.id, item.id, item.status); }}
                                   className="btn btn-outline text-xs py-1 px-2.5"
@@ -245,7 +250,7 @@ const Audit = () => {
                                   Cycle Status
                                 </button>
                               ) : (
-                                <span className="text-xs text-text-secondary">Locked</span>
+                                <span className="text-xs text-text-secondary">{!cycle.closed ? 'View Only' : 'Locked'}</span>
                               )}
                             </td>
                           </tr>
@@ -283,7 +288,7 @@ const Audit = () => {
                           <FileWarning size={14} /> {showReport === cycle.id ? 'Hide' : 'View'} Report
                         </button>
                       )}
-                      {!cycle.closed && (
+                      {!cycle.closed && canManageAudit && (
                         <button
                           onClick={() => { if (window.confirm(`Close this audit cycle? ${cycleItems.filter(i => i.status === 'Missing').length} missing asset(s) will be marked as Lost.`)) closeAuditCycle(cycle.id); }}
                           className="btn btn-primary text-xs"

@@ -59,6 +59,7 @@ export const getTransfers = asyncHandler(async (req, res) => {
   res.json(new ApiResponse(200, result.rows, 'Transfer requests retrieved'));
 });
 
+// Employees initiate a transfer request — status starts as "Pending"
 export const createTransfer = asyncHandler(async (req, res) => {
   const { asset_id, from_user_id, to_user_id, reason } = req.body;
 
@@ -66,34 +67,74 @@ export const createTransfer = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Asset, from user, and to user are required');
   }
 
+  // Check that asset is currently allocated
+  const assetCheck = await query('SELECT status, holder_id FROM assets WHERE id = $1', [asset_id]);
+  if (assetCheck.rows.length === 0) throw new ApiError(404, 'Asset not found');
+  if (assetCheck.rows[0].status !== 'Allocated') {
+    throw new ApiError(400, 'Only currently allocated assets can be transferred');
+  }
+
+  const result = await query(
+    `INSERT INTO transfer_requests (asset_id, from_user_id, to_user_id, reason, status)
+     VALUES ($1, $2, $3, $4, 'Pending') RETURNING *`,
+    [asset_id, from_user_id, to_user_id, reason || null]
+  );
+
+  res.status(201).json(new ApiResponse(201, result.rows[0], 'Transfer request submitted for approval'));
+});
+
+// Admin/Asset Manager/Department Head approves a transfer
+export const approveTransfer = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const transfer = await query('SELECT * FROM transfer_requests WHERE id = $1', [id]);
+  if (transfer.rows.length === 0) throw new ApiError(404, 'Transfer request not found');
+  if (transfer.rows[0].status !== 'Pending') {
+    throw new ApiError(400, `Transfer is already ${transfer.rows[0].status}`);
+  }
+
+  const { asset_id, to_user_id } = transfer.rows[0];
+
   await query('BEGIN');
   try {
-    const result = await query(
-      `INSERT INTO transfer_requests (asset_id, from_user_id, to_user_id, reason, status)
-       VALUES ($1, $2, $3, $4, 'Approved') RETURNING *`,
-      [asset_id, from_user_id, to_user_id, reason || null]
-    );
+    // Update transfer status
+    await query("UPDATE transfer_requests SET status = 'Approved' WHERE id = $1", [id]);
 
-    // Auto-approve: close old allocation, create new one, update asset holder
+    // Close old allocation
     await query(
       `UPDATE asset_allocations SET status = 'Returned', returned_date = NOW() WHERE asset_id = $1 AND status = 'Active'`,
       [asset_id]
     );
+
+    // Create new allocation
     await query(
-      `INSERT INTO asset_allocations (asset_id, user_id) VALUES ($1, $2)`,
+      'INSERT INTO asset_allocations (asset_id, user_id) VALUES ($1, $2)',
       [asset_id, to_user_id]
     );
-    await query(
-      `UPDATE assets SET holder_id = $1 WHERE id = $2`,
-      [to_user_id, asset_id]
-    );
+
+    // Update asset holder
+    await query('UPDATE assets SET holder_id = $1 WHERE id = $2', [to_user_id, asset_id]);
 
     await query('COMMIT');
-    res.status(201).json(new ApiResponse(201, result.rows[0], 'Transfer completed'));
+    res.json(new ApiResponse(200, { id, status: 'Approved' }, 'Transfer approved'));
   } catch (error) {
     await query('ROLLBACK');
     throw error;
   }
+});
+
+// Admin/Asset Manager/Department Head rejects a transfer
+export const rejectTransfer = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const transfer = await query('SELECT * FROM transfer_requests WHERE id = $1', [id]);
+  if (transfer.rows.length === 0) throw new ApiError(404, 'Transfer request not found');
+  if (transfer.rows[0].status !== 'Pending') {
+    throw new ApiError(400, `Transfer is already ${transfer.rows[0].status}`);
+  }
+
+  await query("UPDATE transfer_requests SET status = 'Rejected' WHERE id = $1", [id]);
+  res.json(new ApiResponse(200, { id, status: 'Rejected' }, 'Transfer rejected'));
 });
 
 // --- RESOURCE BOOKINGS ---
@@ -153,19 +194,14 @@ export const createMaintenanceRequest = asyncHandler(async (req, res) => {
   const { asset_id, issue_description, priority } = req.body;
   const requester_id = req.user.id;
 
-  await query('BEGIN');
-  try {
-    const result = await query(
-      'INSERT INTO maintenance_requests (asset_id, requester_id, issue_description, priority) VALUES ($1, $2, $3, $4) RETURNING *',
-      [asset_id, requester_id, issue_description, priority || 'Medium']
-    );
-    await query("UPDATE assets SET status = 'Under Maintenance' WHERE id = $1", [asset_id]);
-    await query('COMMIT');
-    res.status(201).json(new ApiResponse(201, result.rows[0], 'Maintenance request created'));
-  } catch (error) {
-    await query('ROLLBACK');
-    throw error;
-  }
+  // Maintenance request starts as Pending — does NOT flip asset status yet
+  // Asset status flips to 'Under Maintenance' only when an Admin/Asset Manager APPROVES the request
+  const result = await query(
+    'INSERT INTO maintenance_requests (asset_id, requester_id, issue_description, priority) VALUES ($1, $2, $3, $4) RETURNING *',
+    [asset_id, requester_id, issue_description, priority || 'Medium']
+  );
+
+  res.status(201).json(new ApiResponse(201, result.rows[0], 'Maintenance request created'));
 });
 
 export const updateMaintenanceStatus = asyncHandler(async (req, res) => {
@@ -179,11 +215,12 @@ export const updateMaintenanceStatus = asyncHandler(async (req, res) => {
   try {
     await query('UPDATE maintenance_requests SET status = $1 WHERE id = $2', [status, id]);
 
-    // Update linked asset status
+    // Update linked asset status based on workflow stage
     const assetId = ticket.rows[0].asset_id;
     if (status === 'Resolved') {
       await query("UPDATE assets SET status = 'Available' WHERE id = $1", [assetId]);
     } else if (['Approved', 'In Progress', 'Technician Assigned'].includes(status)) {
+      // Asset flips to Under Maintenance only AFTER approval
       await query("UPDATE assets SET status = 'Under Maintenance' WHERE id = $1", [assetId]);
     }
 

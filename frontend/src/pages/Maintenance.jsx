@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, ArrowRight, XCircle, Wrench, Calendar, FileText } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
+import { useAuthStore } from '../store/authStore';
 
 const Maintenance = () => {
   const columns = ['Pending', 'Approved', 'Technician Assigned', 'In Progress', 'Resolved', 'Rejected'];
@@ -18,6 +19,8 @@ const Maintenance = () => {
 
   const descRef = useRef(null);
   const { maintenanceTickets, assets, employees, raiseTicket, updateTicketStatus, syncBackendData } = useAppStore();
+  const { user } = useAuthStore();
+  const canAdvance = ['Admin', 'Asset Manager'].includes(user?.role);
 
   useEffect(() => { syncBackendData(); }, []);
 
@@ -157,24 +160,26 @@ const Maintenance = () => {
                       )}
 
                       {/* Actions */}
-                      <div className="flex gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {nextStage && assigningTicketId !== ticket.id && (
-                          <button 
-                            onClick={() => handleAdvance(ticket, nextStage)}
-                            className="btn btn-outline flex-1 py-1 !px-2 !gap-1 text-[10px] text-text-secondary hover:text-text-primary min-w-0"
-                          >
-                            Advance <ArrowRight size={10} className="shrink-0" />
-                          </button>
-                        )}
-                        {col === 'Pending' && (
-                          <button 
-                            onClick={() => updateTicketStatus(ticket.id, 'Rejected')}
-                            className="btn btn-outline flex-1 py-1 !px-2 !gap-1 text-[10px] border-alert-danger text-alert-danger hover:bg-alert-danger hover:text-white min-w-0"
-                          >
-                            Reject
-                          </button>
-                        )}
-                      </div>
+                      {canAdvance && (
+                        <div className="flex gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {nextStage && assigningTicketId !== ticket.id && (
+                            <button 
+                              onClick={() => handleAdvance(ticket, nextStage)}
+                              className="btn btn-outline flex-1 py-1 !px-2 !gap-1 text-[10px] text-text-secondary hover:text-text-primary min-w-0"
+                            >
+                              Advance <ArrowRight size={10} className="shrink-0" />
+                            </button>
+                          )}
+                          {col === 'Pending' && (
+                            <button 
+                              onClick={() => updateTicketStatus(ticket.id, 'Rejected')}
+                              className="btn btn-outline flex-1 py-1 !px-2 !gap-1 text-[10px] border-alert-danger text-alert-danger hover:bg-alert-danger hover:text-white min-w-0"
+                            >
+                              Reject
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })}

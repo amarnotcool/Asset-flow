@@ -11,11 +11,12 @@ const AllocationTransfer = () => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('actions');
 
-  const { assets, users: employees, allocateAsset, returnAsset, syncBackendData } = useAppStore();
+  const { assets, employees, transfers, transferAsset, allocateAsset, returnAsset, approveTransfer, rejectTransfer, syncBackendData } = useAppStore();
+  const { user } = useAuthStore();
   
-  // Pending transfers can be fetched from backend if added, mocking for UI
-  const pendingTransfers = [];
-  const isAdmin = true;
+  const pendingTransfers = (transfers || []).filter(t => t.status === 'Pending');
+  const canApproveTransfer = ['Admin', 'Asset Manager', 'Department Head'].includes(user?.role);
+  const canAllocate = ['Admin', 'Asset Manager'].includes(user?.role);
 
   const tagInputRef = useRef(null);
 
@@ -48,14 +49,29 @@ const AllocationTransfer = () => {
   const handleSubmitTransferRequest = async (e) => {
     e.preventDefault();
     if (foundAsset && selectedEmployee) {
-      allocateAsset(foundAsset.id, selectedEmployee);
+      await transferAsset({
+        asset_id: foundAsset.id,
+        from_user_id: foundAsset.holder_id,
+        to_user_id: selectedEmployee,
+        reason: transferReason
+      });
       setActionMessage({
         type: 'success',
-        text: `Transfer request approved: ${foundAsset.asset_tag} re-allocated to ${selectedEmployee}.`,
+        text: `Transfer request submitted for ${foundAsset.asset_tag}. Awaiting approval.`,
       });
       setSelectedEmployee('');
       setTransferReason('');
     }
+  };
+
+  const handleApproveTransfer = async (id) => {
+    await approveTransfer(id);
+    setActionMessage({ type: 'success', text: 'Transfer approved successfully.' });
+  };
+
+  const handleRejectTransfer = async (id) => {
+    await rejectTransfer(id);
+    setActionMessage({ type: 'warning', text: 'Transfer rejected.' });
   };
 
   const handleReturnAsset = () => {
@@ -179,11 +195,13 @@ const AllocationTransfer = () => {
                     </div>
 
                     <div className="flex flex-col sm:flex-row justify-between items-center mt-2 pt-4 border-t border-border-color gap-3">
-                      <button type="button" onClick={handleReturnAsset} className="btn btn-outline text-sm">
-                        <Undo2 size={16} /> Mark Returned & Available
-                      </button>
-                      <button type="submit" className="btn btn-primary w-full sm:w-auto">
-                        Approve & Re-allocate
+                      {canAllocate && (
+                        <button type="button" onClick={handleReturnAsset} className="btn btn-outline text-sm">
+                          <Undo2 size={16} /> Mark Returned & Available
+                        </button>
+                      )}
+                      <button type="submit" className="btn btn-primary w-full sm:w-auto ml-auto">
+                        <Send size={16} className="shrink-0" /> Submit Transfer Request
                       </button>
                     </div>
                   </form>
@@ -204,9 +222,16 @@ const AllocationTransfer = () => {
                     </div>
 
                     <div className="mt-2 pt-4 border-t border-border-color">
-                      <button type="submit" className="btn btn-primary">
-                        Allocate Asset Now
-                      </button>
+                      {canAllocate ? (
+                        <button type="submit" className="btn btn-primary">
+                          Allocate Asset Now
+                        </button>
+                      ) : (
+                        <div className="alert alert-warning">
+                          <AlertCircle size={18} />
+                          <span>You do not have permission to allocate assets directly.</span>
+                        </div>
+                      )}
                     </div>
                   </form>
                 </div>
@@ -247,16 +272,16 @@ const AllocationTransfer = () => {
               <tbody>
                 {pendingTransfers.length > 0 ? pendingTransfers.map(req => (
                   <tr key={req.id} className="hover:bg-bg-primary/50 transition-colors">
-                    <td className="td font-bold text-accent-primary">{req.assetTag}</td>
-                    <td className="td text-text-primary">{req.fromUser}</td>
-                    <td className="td font-bold text-text-primary">{req.toUser}</td>
-                    <td className="td text-text-secondary">{req.reason}</td>
-                    <td className="td text-text-secondary">{req.requestDate}</td>
+                    <td className="td font-bold text-accent-primary">{req.asset_tag || "AF-XXXX"}</td>
+                    <td className="td text-text-primary">{req.from_user_name || "Unknown"}</td>
+                    <td className="td font-bold text-text-primary">{req.to_user_name || "Unknown"}</td>
+                    <td className="td text-text-secondary">{req.reason || "--"}</td>
+                    <td className="td text-text-secondary">{new Date(req.request_date).toLocaleDateString()}</td>
                     <td className="td text-right">
-                      {isAdmin ? (
+                      {canApproveTransfer ? (
                         <div className="flex items-center justify-end gap-2">
-                          <button className="btn btn-outline border-alert-success text-alert-success hover:bg-alert-success hover:text-white py-1 px-3 text-xs">Approve</button>
-                          <button className="btn btn-outline border-alert-danger text-alert-danger hover:bg-alert-danger hover:text-white py-1 px-3 text-xs">Reject</button>
+                          <button onClick={() => handleApproveTransfer(req.id)} className="btn btn-outline border-alert-success text-alert-success hover:bg-alert-success hover:text-white py-1 px-3 text-xs">Approve</button>
+                          <button onClick={() => handleRejectTransfer(req.id)} className="btn btn-outline border-alert-danger text-alert-danger hover:bg-alert-danger hover:text-white py-1 px-3 text-xs">Reject</button>
                         </div>
                       ) : (
                         <span className="text-xs text-text-secondary italic">Awaiting Manager</span>

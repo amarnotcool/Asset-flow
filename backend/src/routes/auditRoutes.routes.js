@@ -14,6 +14,6 @@ router.route('/:id/close')
   .put(authorizeRoles('Admin'), closeAudit);
 
 router.route('/:cycleId/items/:itemId')
-  .put(updateAuditItem);
+  .put(authorizeRoles('Admin', 'Asset Manager'), updateAuditItem);
 
 export default router;

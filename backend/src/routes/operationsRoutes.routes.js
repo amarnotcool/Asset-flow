@@ -1,7 +1,7 @@
 import express from 'express';
 import { 
   getAllocations, allocateAsset, 
-  getTransfers, createTransfer,
+  getTransfers, createTransfer, approveTransfer, rejectTransfer,
   getBookings, createBooking,
   getMaintenanceRequests, createMaintenanceRequest, updateMaintenanceStatus
 } from '../controllers/operationsController.js';
@@ -17,7 +17,13 @@ router.route('/allocations')
 
 router.route('/transfers')
   .get(getTransfers)
-  .post(authorizeRoles('Admin', 'Asset Manager'), createTransfer);
+  .post(createTransfer); // Any authenticated user can INITIATE a transfer request
+
+router.route('/transfers/:id/approve')
+  .put(authorizeRoles('Admin', 'Asset Manager', 'Department Head'), approveTransfer);
+
+router.route('/transfers/:id/reject')
+  .put(authorizeRoles('Admin', 'Asset Manager', 'Department Head'), rejectTransfer);
 
 router.route('/bookings')
   .get(getBookings)

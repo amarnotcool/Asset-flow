@@ -151,6 +151,30 @@ export const useAppStore = create((set, get) => ({
     }
   },
 
+  approveTransfer: async (id) => {
+    try {
+      await operationsApi.approveTransfer(id);
+      const [assets, allocs, transfers] = await Promise.all([
+        assetApi.getAssets(),
+        operationsApi.getAllocations(),
+        operationsApi.getTransfers(),
+      ]);
+      set({ assets, allocations: allocs, transfers });
+    } catch (err) {
+      throw err;
+    }
+  },
+
+  rejectTransfer: async (id) => {
+    try {
+      await operationsApi.rejectTransfer(id);
+      const transfers = await operationsApi.getTransfers();
+      set({ transfers });
+    } catch (err) {
+      throw err;
+    }
+  },
+
   // ─── BOOKING ACTIONS ───
   addBooking: async (bookingData) => {
     try {

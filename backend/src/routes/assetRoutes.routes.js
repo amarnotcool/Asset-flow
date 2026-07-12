@@ -14,6 +14,6 @@ router.route('/:id')
   .put(authorizeRoles('Admin', 'Asset Manager'), updateAsset);
 
 router.route('/:id/return')
-  .put(returnAsset);
+  .put(authorizeRoles('Admin', 'Asset Manager'), returnAsset);
 
 export default router;
