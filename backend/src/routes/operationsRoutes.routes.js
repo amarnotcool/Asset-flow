@@ -4,7 +4,7 @@ import {
   getBookings, createBooking,
   getMaintenanceRequests, createMaintenanceRequest
 } from '../controllers/operationsController.js';
-import { protect, admin } from '../middleware/authMiddleware.js';
+import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -12,7 +12,7 @@ router.use(protect);
 
 router.route('/allocations')
   .get(getAllocations)
-  .post(admin, allocateAsset);
+  .post(authorizeRoles('Admin', 'Asset Manager'), allocateAsset);
 
 router.route('/bookings')
   .get(getBookings)

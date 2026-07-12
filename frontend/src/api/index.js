@@ -10,6 +10,18 @@ export const authApi = {
     const response = await axiosClient.post('/auth/register', userData);
     return response.data.data;
   },
+  forgotPassword: async (email) => {
+    const response = await axiosClient.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+  verifyOtp: async (email, otp) => {
+    const response = await axiosClient.post('/auth/verify-otp', { email, otp });
+    return response.data;
+  },
+  resetPassword: async (email, newPassword) => {
+    const response = await axiosClient.post('/auth/reset-password', { email, newPassword });
+    return response.data;
+  },
 };
 
 // Organization Setup APIs (/api/org)

@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 import { useAppStore } from './store/appStore';
+import { useAuthStore } from './store/authStore';
 import { useThemeStore } from './store/themeStore';
 
 import Login from './pages/Login';
@@ -17,21 +19,31 @@ import Notifications from './pages/Notifications';
 
 function App() {
   const syncBackendData = useAppStore((state) => state.syncBackendData);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const initTheme = useThemeStore((state) => state.initTheme);
 
   useEffect(() => {
     initTheme();
-    // Automatically synchronize with backend Express server on mount
-    syncBackendData();
-  }, [initTheme, syncBackendData]);
+  }, [initTheme]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      syncBackendData();
+    }
+  }, [isAuthenticated, syncBackendData]);
 
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={<Login />} />
+        {/* Public route */}
+        <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} />
 
-        {/* Main App Layout */}
-        <Route path="/" element={<AppLayout />}>
+        {/* Protected routes */}
+        <Route path="/" element={
+          <ProtectedRoute>
+            <AppLayout />
+          </ProtectedRoute>
+        }>
           <Route index element={<Dashboard />} />
           <Route path="organization-setup" element={<OrganizationSetup />} />
           <Route path="assets" element={<AssetDirectory />} />
@@ -42,6 +54,9 @@ function App() {
           <Route path="reports" element={<Reports />} />
           <Route path="notifications" element={<Notifications />} />
         </Route>
+
+        {/* Catch-all: redirect to login */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
   );

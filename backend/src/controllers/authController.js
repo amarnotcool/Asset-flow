@@ -4,6 +4,8 @@ import { query } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
+import { sendOtpEmail } from '../utils/mailer.js';
+import { generateOtp, verifyOtp, isOtpVerified, clearOtp } from '../utils/otpStore.js';
 
 // Generate JWT
 const generateToken = (id) => {
@@ -22,7 +24,6 @@ export const login = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Please provide email and password');
   }
 
-  // Check if user exists
   const result = await query('SELECT * FROM users WHERE email = $1', [email]);
   if (result.rows.length === 0) {
     throw new ApiError(401, 'Invalid credentials');
@@ -34,15 +35,12 @@ export const login = asyncHandler(async (req, res) => {
     throw new ApiError(403, 'Account is inactive. Contact administrator.');
   }
 
-  // Check password
   const isMatch = await bcrypt.compare(password, user.password_hash);
   if (!isMatch) {
     throw new ApiError(401, 'Invalid credentials');
   }
 
   const token = generateToken(user.id);
-
-  // Return user without hash
   const { password_hash, ...userWithoutPassword } = user;
 
   res.status(200).json(
@@ -60,17 +58,14 @@ export const register = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Please provide all required fields');
   }
 
-  // Check if user exists
   const userExists = await query('SELECT email FROM users WHERE email = $1', [email]);
   if (userExists.rows.length > 0) {
     throw new ApiError(409, 'User with this email already exists');
   }
 
-  // Hash password
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  // Insert user
   const result = await query(
     'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, name, email, role, department_id, status',
     [name, email, hashedPassword]
@@ -81,5 +76,99 @@ export const register = asyncHandler(async (req, res) => {
 
   res.status(201).json(
     new ApiResponse(201, { user: newUser, token }, 'User registered successfully')
+  );
+});
+
+// @route   POST /api/auth/forgot-password
+// @desc    Send OTP to user's email for password reset
+// @access  Public
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    throw new ApiError(400, 'Please provide your email address');
+  }
+
+  // Check if user exists
+  const result = await query('SELECT id, name, email FROM users WHERE email = $1', [email]);
+  if (result.rows.length === 0) {
+    throw new ApiError(404, 'No account found with this email address');
+  }
+
+  const user = result.rows[0];
+
+  // Generate and send OTP
+  const otp = generateOtp(email);
+
+  try {
+    await sendOtpEmail(email, otp, user.name);
+  } catch (err) {
+    console.error('Email send error:', err.message);
+    throw new ApiError(500, 'Failed to send OTP email. Please try again later.');
+  }
+
+  res.status(200).json(
+    new ApiResponse(200, { email }, 'OTP has been sent to your email address')
+  );
+});
+
+// @route   POST /api/auth/verify-otp
+// @desc    Verify the OTP sent to user's email
+// @access  Public
+export const verifyOtpHandler = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    throw new ApiError(400, 'Please provide email and OTP');
+  }
+
+  const result = verifyOtp(email, otp);
+
+  if (!result.valid) {
+    throw new ApiError(400, result.message);
+  }
+
+  res.status(200).json(
+    new ApiResponse(200, { email, verified: true }, result.message)
+  );
+});
+
+// @route   POST /api/auth/reset-password
+// @desc    Reset password after OTP verification
+// @access  Public (requires verified OTP)
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  if (!email || !newPassword) {
+    throw new ApiError(400, 'Please provide email and new password');
+  }
+
+  if (newPassword.length < 6) {
+    throw new ApiError(400, 'Password must be at least 6 characters');
+  }
+
+  // Ensure OTP was verified before allowing password reset
+  if (!isOtpVerified(email)) {
+    throw new ApiError(403, 'OTP verification required before resetting password');
+  }
+
+  // Check if user exists
+  const result = await query('SELECT id, email FROM users WHERE email = $1', [email]);
+  if (result.rows.length === 0) {
+    throw new ApiError(404, 'No account found with this email address');
+  }
+
+  // Hash new password
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+  // Update password
+  await query('UPDATE users SET password_hash = $1 WHERE email = $2', [hashedPassword, email]);
+
+  // Clear the OTP so it can't be reused
+  clearOtp(email);
+
+  res.status(200).json(
+    new ApiResponse(200, null, 'Password has been reset successfully')
   );
 });

@@ -36,4 +36,15 @@ app.use('/api/auth', authRoutes);
 app.use('/api/org', orgRoutes);
 app.use('/api/operations', operationsRoutes);
 
+// Global error handler — catches ApiError thrown by controllers
+app.use((err, req, res, next) => {
+  const statusCode = err.statusCode || 500;
+  res.status(statusCode).json({
+    statusCode,
+    message: err.message || 'Internal Server Error',
+    success: false,
+    errors: err.errors || [],
+  });
+});
+
 export { app };

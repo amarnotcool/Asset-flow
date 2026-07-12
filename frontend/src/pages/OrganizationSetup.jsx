@@ -99,6 +99,8 @@ const OrganizationSetup = () => {
         ? 'Asset Manager'
         : emp.role === 'Asset Manager'
         ? 'Department Head'
+        : emp.role === 'Department Head'
+        ? 'Admin'
         : 'Employee';
     try {
       await orgApi.updateEmployeeRole(emp.id, nextRole);
@@ -230,6 +232,7 @@ const OrganizationSetup = () => {
                     <td className="td">{emp.dept}</td>
                     <td className="td">
                       <span className={`badge ${
+                        emp.role === 'Admin' ? 'border border-alert-danger text-alert-danger bg-alert-danger-bg font-bold' :
                         emp.role === 'Department Head' ? 'badge-info' : 
                         emp.role === 'Asset Manager' ? 'badge-success' : 'border border-border-color bg-transparent text-text-primary'
                       }`}>
