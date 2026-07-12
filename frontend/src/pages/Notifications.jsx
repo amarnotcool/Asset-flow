@@ -3,22 +3,37 @@ import { Package, Calendar, Wrench, ArrowRightLeft, AlertTriangle } from 'lucide
 import { useAppStore } from '../store/appStore';
 
 const Notifications = () => {
-  // Simple action-oriented useState variable
   const [activeFilter, setActiveFilter] = useState('All');
   const listContainerRef = useRef(null);
-  const { notifications } = useAppStore();
+  const { allocations, bookings, maintenanceTickets, syncBackendData } = useAppStore();
 
-  // useEffect + useRef: Scroll list to top when tab filter changes
+  useEffect(() => { syncBackendData(); }, []);
+
   useEffect(() => {
     listContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [activeFilter]);
 
-  const extraAlerts = [
-    { id: 101, type: 'Alerts', text: 'Overdue return: AF-0221 was due 3 days ago', time: '1d ago' },
-    { id: 102, type: 'Alerts', text: 'Audit discrepancy flagged: AF-0099 damaged', time: '2d ago' },
+  // Build notifications dynamically from real data
+  const allNotifications = [
+    ...allocations.slice(0, 5).map(a => ({
+      id: `alloc-${a.id}`,
+      type: 'Allocations',
+      text: `${a.asset_tag || 'Asset'} ${a.asset_name || ''} allocated to ${a.user_name || '—'}`,
+      time: a.allocated_date ? new Date(a.allocated_date).toLocaleDateString() : '—',
+    })),
+    ...bookings.slice(0, 5).map(b => ({
+      id: `book-${b.id}`,
+      type: 'Bookings',
+      text: `${b.asset_name || 'Resource'} booked by ${b.user_name || '—'}`,
+      time: b.start_time ? new Date(b.start_time).toLocaleDateString() : '—',
+    })),
+    ...maintenanceTickets.slice(0, 5).map(m => ({
+      id: `maint-${m.id}`,
+      type: m.status === 'Resolved' ? 'Approvals' : 'Alerts',
+      text: `${m.asset_tag || 'Asset'} ${m.asset_name || ''} — ${m.issue_description || m.status}`,
+      time: m.request_date ? new Date(m.request_date).toLocaleDateString() : '—',
+    })),
   ];
-
-  const allNotifications = [...notifications, ...extraAlerts];
 
   const filteredNotifications =
     activeFilter === 'All'
@@ -57,30 +72,33 @@ const Notifications = () => {
       <div className="card flex flex-col flex-1 overflow-hidden p-0">
         <div className="flex gap-3 p-6 border-b border-border-color shrink-0 bg-bg-secondary flex-wrap">
           {['All', 'Alerts', 'Approvals', 'Bookings', 'Allocations'].map(f => (
-            <button
-              key={f}
-              onClick={() => setActiveFilter(f)}
-              className={`pill ${activeFilter === f ? 'active' : ''}`}
-            >
+            <button key={f} onClick={() => setActiveFilter(f)} className={`pill ${activeFilter === f ? 'active' : ''}`}>
               {f}
             </button>
           ))}
         </div>
 
         <div ref={listContainerRef} className="overflow-y-auto flex-1 bg-[#f8fafc] p-6">
-          <ul className="list-none flex flex-col m-0 p-0 relative before:absolute before:inset-0 before:ml-[1.4rem] before:h-full before:w-0.5 before:bg-border-color gap-1">
-            {filteredNotifications.map((item) => (
-              <li key={item.id} className="relative pl-14 py-3 group">
-                <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex justify-center items-center border-4 border-[#f8fafc] z-10 transition-transform group-hover:scale-110 ${getBadgeClassForType(item.type)}`}>
-                  {getIconForType(item.type)}
-                </div>
-                <div className="bg-bg-secondary border border-border-color rounded-xl p-4 shadow-sm group-hover:border-accent-primary transition-colors flex justify-between items-center">
-                  <p className="text-sm font-semibold text-text-primary m-0">{item.text}</p>
-                  <span className="text-xs font-medium text-text-secondary bg-[#f1f5f9] px-2 py-1 rounded-md">{item.time}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
+          {filteredNotifications.length > 0 ? (
+            <ul className="list-none flex flex-col m-0 p-0 relative before:absolute before:inset-0 before:ml-[1.4rem] before:h-full before:w-0.5 before:bg-border-color gap-1">
+              {filteredNotifications.map((item) => (
+                <li key={item.id} className="relative pl-14 py-3 group">
+                  <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex justify-center items-center border-4 border-[#f8fafc] z-10 transition-transform group-hover:scale-110 ${getBadgeClassForType(item.type)}`}>
+                    {getIconForType(item.type)}
+                  </div>
+                  <div className="bg-bg-secondary border border-border-color rounded-xl p-4 shadow-sm group-hover:border-accent-primary transition-colors flex justify-between items-center">
+                    <p className="text-sm font-semibold text-text-primary m-0">{item.text}</p>
+                    <span className="text-xs font-medium text-text-secondary bg-[#f1f5f9] px-2 py-1 rounded-md whitespace-nowrap ml-3">{item.time}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="p-12 text-center text-text-secondary">
+              <p className="text-base font-medium">No activity recorded yet.</p>
+              <p className="text-sm">Notifications will appear here as assets are allocated, booked, and maintained.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

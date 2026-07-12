@@ -4,28 +4,27 @@ import { useAppStore } from '../store/appStore';
 
 const Audit = () => {
   const auditTableRef = useRef(null);
-  const { audits, updateAuditItemStatus, closeAuditCycle } = useAppStore();
+  const { audits, updateAuditItemStatus, closeAuditCycle, syncBackendData } = useAppStore();
 
-  const currentAudit = audits[0]; // Active audit cycle
+  useEffect(() => { syncBackendData(); }, []);
 
-  // useEffect + useRef: Highlight active audit table container on mount
+  const currentAudit = audits.length > 0 ? audits[0] : null;
+
   useEffect(() => {
     auditTableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [currentAudit]);
 
   const handleCycleItemStatus = (item) => {
-    if (currentAudit.closed) return;
+    if (!currentAudit || currentAudit.closed) return;
     const nextStatus =
-      item.status === 'Verified'
-        ? 'Missing'
-        : item.status === 'Missing'
-        ? 'Damaged'
-        : 'Verified';
-    updateAuditItemStatus(currentAudit.id, item.tag, nextStatus);
+      item.status === 'Verified' ? 'Missing'
+      : item.status === 'Missing' ? 'Damaged'
+      : 'Verified';
+    updateAuditItemStatus(currentAudit.id, item.id, nextStatus);
   };
 
   const flaggedCount = currentAudit
-    ? currentAudit.items.filter((item) => item.status !== 'Verified').length
+    ? (currentAudit.items || []).filter((item) => item.status !== 'Verified').length
     : 0;
 
   return (
@@ -37,19 +36,21 @@ const Audit = () => {
         </div>
       </div>
 
-      {currentAudit && (
+      {currentAudit ? (
         <div ref={auditTableRef} className="card mb-6 p-0 overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-6 border-b border-border-color gap-4 bg-bg-secondary">
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <h2 className="text-lg font-bold text-text-primary m-0">{currentAudit.title}</h2>
+                <h2 className="text-lg font-bold text-text-primary m-0">{currentAudit.scope || 'Audit Cycle'}</h2>
                 {currentAudit.closed && (
                   <span className="badge badge-neutral bg-[#e2e8f0]">
                     <Lock size={12} /> Closed Cycle
                   </span>
                 )}
               </div>
-              <p className="text-text-secondary text-sm m-0 font-medium">Assigned Auditors: <span className="text-text-primary">{currentAudit.auditors}</span></p>
+              <p className="text-text-secondary text-sm m-0 font-medium">
+                Period: {new Date(currentAudit.start_date).toLocaleDateString()} — {new Date(currentAudit.end_date).toLocaleDateString()}
+              </p>
             </div>
             
             {!currentAudit.closed ? (
@@ -68,25 +69,26 @@ const Audit = () => {
               <thead>
                 <tr>
                   <th className="th">Asset Tag & Name</th>
-                  <th className="th">Expected Location</th>
+                  <th className="th">Location</th>
                   <th className="th">Verification Status</th>
                   <th className="th text-right">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {currentAudit.items.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-black/[0.01]">
+                {(currentAudit.items || []).map((item) => (
+                  <tr key={item.id} className="hover:bg-black/[0.01]">
                     <td className="td">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-accent-primary bg-[#e0f2fe] px-2 py-0.5 rounded text-xs">{item.tag}</span>
-                        <span className="font-medium text-text-primary">{item.name}</span>
+                        <span className="font-bold text-accent-primary bg-[#e0f2fe] px-2 py-0.5 rounded text-xs">{item.asset_tag}</span>
+                        <span className="font-medium text-text-primary">{item.asset_name}</span>
                       </div>
                     </td>
-                    <td className="td">{item.location}</td>
+                    <td className="td">{item.asset_location || '—'}</td>
                     <td className="td">
                       <span className={`badge ${
                         item.status === 'Verified' ? 'badge-success' : 
-                        item.status === 'Missing' ? 'badge-danger' : 'badge-warning'
+                        item.status === 'Missing' ? 'badge-danger' : 
+                        item.status === 'Damaged' ? 'badge-warning' : 'badge-neutral'
                       }`}>
                         {item.status}
                       </span>
@@ -104,6 +106,11 @@ const Audit = () => {
                     </td>
                   </tr>
                 ))}
+                {(!currentAudit.items || currentAudit.items.length === 0) && (
+                  <tr>
+                    <td colSpan={4} className="p-8 text-center text-text-secondary text-sm">No assets assigned to this audit cycle.</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -121,6 +128,12 @@ const Audit = () => {
               </div>
             )}
           </div>
+        </div>
+      ) : (
+        <div className="card p-12 text-center">
+          <ShieldCheck size={48} className="mx-auto mb-4 text-text-secondary opacity-40" />
+          <h3 className="text-lg font-bold text-text-primary m-0 mb-2">No Active Audit Cycles</h3>
+          <p className="text-sm text-text-secondary m-0">Create an audit cycle through the admin panel to start verifying assets.</p>
         </div>
       )}
     </div>

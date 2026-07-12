@@ -5,9 +5,10 @@ import { useAppStore } from '../store/appStore';
 const Reports = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('This Month');
   const reportRef = useRef(null);
-  const { assets, departments, bookings, maintenanceTickets } = useAppStore();
+  const { assets, departments, bookings, maintenanceTickets, syncBackendData } = useAppStore();
 
-  // useEffect + useRef: Track period changes and scroll report top into view
+  useEffect(() => { syncBackendData(); }, []);
+
   useEffect(() => {
     reportRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [selectedPeriod]);
@@ -20,6 +21,16 @@ const Reports = () => {
   const handleExport = () => {
     alert(`Exporting AssetFlow operational summary report for ${selectedPeriod}...`);
   };
+
+  // Build most-used resources from real bookings
+  const bookingCountByAsset = {};
+  bookings.forEach(b => {
+    const key = b.asset_name || `Asset #${b.asset_id}`;
+    bookingCountByAsset[key] = (bookingCountByAsset[key] || 0) + 1;
+  });
+  const topResources = Object.entries(bookingCountByAsset)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
 
   return (
     <div ref={reportRef} className="flex flex-col">
@@ -40,7 +51,6 @@ const Reports = () => {
         </div>
       </div>
 
-      {/* KPI Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="card text-center p-5">
           <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Total Assets</span>
@@ -58,32 +68,28 @@ const Reports = () => {
         </div>
         <div className="card text-center p-5 border-b-4 border-alert-warning">
           <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Open Maintenance</span>
-          <h3 className="text-4xl font-black text-alert-warning mt-2 m-0">{maintenanceTickets.length}</h3>
+          <h3 className="text-4xl font-black text-alert-warning mt-2 m-0">{maintenanceTickets.filter(t => t.status !== 'Resolved').length}</h3>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        {/* CSS-only Bar Chart implementation for Utilization */}
         <div className="card flex flex-col">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold text-lg flex items-center gap-2 m-0 text-text-primary">
               <TrendingUp size={18} className="text-accent-primary" /> Utilization Trends
             </h3>
           </div>
-          
           <div className="chart-container">
             <div className="chart-bar-group">
               <div className="chart-bar" style={{ height: `${(allocatedCount / (totalAssets || 1)) * 100}%` }}></div>
               <span className="chart-bar-value">{allocatedCount}</span>
               <span className="chart-bar-label">Allocated</span>
             </div>
-            
             <div className="chart-bar-group">
               <div className="chart-bar bar-secondary" style={{ height: `${(availableCount / (totalAssets || 1)) * 100}%` }}></div>
               <span className="chart-bar-value">{availableCount}</span>
               <span className="chart-bar-label">Available</span>
             </div>
-            
             <div className="chart-bar-group">
               <div className="chart-bar" style={{ background: 'linear-gradient(180deg, var(--alert-warning), #fcd34d)', height: `${(maintenanceCount / (totalAssets || 1)) * 100}%` }}></div>
               <span className="chart-bar-value">{maintenanceCount}</span>
@@ -97,15 +103,17 @@ const Reports = () => {
             <PieChart size={18} className="text-accent-primary" /> Department Summary
           </h3>
           <div className="flex flex-col gap-3">
-            {departments.map(dept => (
+            {departments.length > 0 ? departments.map(dept => (
               <div key={dept.id} className="flex justify-between items-center p-3 rounded-lg bg-bg-primary border border-border-color">
                 <div>
                   <span className="font-bold text-sm text-text-primary block">{dept.name}</span>
-                  <span className="text-xs text-text-secondary">Head: {dept.head}</span>
+                  <span className="text-xs text-text-secondary">Head: {dept.head_name || 'Unassigned'}</span>
                 </div>
-                <span className="badge badge-info uppercase tracking-wider text-[10px]">Active</span>
+                <span className={`badge ${dept.status === 'Active' ? 'badge-info' : 'badge-neutral'} uppercase tracking-wider text-[10px]`}>{dept.status}</span>
               </div>
-            ))}
+            )) : (
+              <p className="text-sm text-text-secondary">No departments configured yet.</p>
+            )}
           </div>
         </div>
       </div>
@@ -114,18 +122,14 @@ const Reports = () => {
         <div className="card">
           <h3 className="font-bold text-base mb-4 text-text-primary m-0 uppercase tracking-wider">Most-Used Resources</h3>
           <ul className="list-none text-sm text-text-primary space-y-3 m-0 p-0">
-            <li className="flex justify-between border-b border-border-color pb-3">
-              <span className="font-medium">Conference room B2</span>
-              <span className="text-text-secondary font-semibold bg-bg-primary px-2 py-0.5 rounded text-xs">{bookings.length} bookings</span>
-            </li>
-            <li className="flex justify-between border-b border-border-color pb-3">
-              <span className="font-medium">Dell XPS 15 (AF-0114)</span>
-              <span className="badge badge-info">Allocated</span>
-            </li>
-            <li className="flex justify-between">
-              <span className="font-medium">Company Van AF-312</span>
-              <span className="text-text-secondary font-semibold bg-bg-primary px-2 py-0.5 rounded text-xs">1 active booking</span>
-            </li>
+            {topResources.length > 0 ? topResources.map(([name, count], idx) => (
+              <li key={idx} className="flex justify-between border-b border-border-color pb-3 last:border-b-0 last:pb-0">
+                <span className="font-medium">{name}</span>
+                <span className="text-text-secondary font-semibold bg-bg-primary px-2 py-0.5 rounded text-xs">{count} booking{count > 1 ? 's' : ''}</span>
+              </li>
+            )) : (
+              <li className="text-text-secondary">No bookings recorded yet.</li>
+            )}
           </ul>
         </div>
 
@@ -134,16 +138,18 @@ const Reports = () => {
             <AlertCircle size={18} /> Needs Attention
           </h3>
           <ul className="list-none text-sm text-text-primary space-y-3 m-0 p-0">
-            {maintenanceTickets.map(ticket => (
-              <li key={ticket.id} className="flex justify-between border-b border-alert-warning/20 pb-3 last:border-b-0 last:pb-0">
-                <span className="font-medium">
-                  <strong className="text-alert-warning">{ticket.asset}</strong> — {ticket.title}
-                </span>
-                <span className="badge bg-white text-alert-warning border border-alert-warning/30 shadow-sm">
-                  {ticket.status}
-                </span>
-              </li>
-            ))}
+            {maintenanceTickets.filter(t => t.status !== 'Resolved').length > 0 ? (
+              maintenanceTickets.filter(t => t.status !== 'Resolved').map(ticket => (
+                <li key={ticket.id} className="flex justify-between border-b border-alert-warning/20 pb-3 last:border-b-0 last:pb-0">
+                  <span className="font-medium">
+                    <strong className="text-alert-warning">{ticket.asset_tag}</strong> — {ticket.issue_description || ticket.asset_name}
+                  </span>
+                  <span className="badge bg-white text-alert-warning border border-alert-warning/30 shadow-sm">{ticket.status}</span>
+                </li>
+              ))
+            ) : (
+              <li className="text-text-primary font-medium">✅ No open maintenance issues. Everything looks good!</li>
+            )}
           </ul>
         </div>
       </div>

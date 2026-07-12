@@ -1,21 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, Plus, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
-import { operationsApi } from '../api';
 
 const ResourceBooking = () => {
-  // Simple action-oriented useState variables
-  const [selectedResource, setSelectedResource] = useState('Conference room B2');
-  const [bookingStartTime, setBookingStartTime] = useState('10:00');
-  const [bookingEndTime, setBookingEndTime] = useState('11:00');
-  const [bookedByTeam, setBookedByTeam] = useState('Engineering Team');
+  const [selectedAssetId, setSelectedAssetId] = useState('');
+  const [bookingStart, setBookingStart] = useState('');
+  const [bookingEnd, setBookingEnd] = useState('');
   const [overlapError, setOverlapError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const teamInputRef = useRef(null);
-  const { bookings, addBooking } = useAppStore();
+  const { assets, bookings, addBooking, syncBackendData } = useAppStore();
 
-  // useEffect + useRef: Auto-dismiss success message or focus team field
+  useEffect(() => { syncBackendData(); }, []);
+
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => setSuccessMessage(null), 5000);
@@ -23,60 +21,45 @@ const ResourceBooking = () => {
     }
   }, [successMessage]);
 
-  const resourceBookings = bookings.filter((b) => b.resource === selectedResource);
-
-  const checkOverlap = (start, end) => {
-    const toMin = (t) => {
-      const [h, m] = t.split(':').map(Number);
-      return h * 60 + m;
-    };
-    const reqStart = toMin(start);
-    const reqEnd = toMin(end);
-
-    for (const booking of resourceBookings) {
-      const existStart = toMin(booking.startTime);
-      const existEnd = toMin(booking.endTime);
-
-      if (reqStart < existEnd && reqEnd > existStart) {
-        return booking;
-      }
-    }
-    return null;
-  };
+  // Filter shared/bookable assets
+  const sharedAssets = assets.filter(a => a.is_shared || a.status === 'Available');
+  const selectedAsset = assets.find(a => a.id === parseInt(selectedAssetId));
+  const resourceBookings = bookings.filter(b => b.asset_id === parseInt(selectedAssetId));
 
   const handleBookingSubmit = async (e) => {
     e.preventDefault();
     setOverlapError(null);
     setSuccessMessage(null);
 
-    if (bookingStartTime >= bookingEndTime) {
+    if (!bookingStart || !bookingEnd) {
+      setOverlapError('Please select start and end times.');
+      return;
+    }
+
+    if (new Date(bookingStart) >= new Date(bookingEnd)) {
       setOverlapError('End time must be after start time.');
       return;
     }
 
-    const conflict = checkOverlap(bookingStartTime, bookingEndTime);
-    if (conflict) {
-      setOverlapError(
-        `Requested slot (${bookingStartTime}–${bookingEndTime}) overlaps with existing booking (${conflict.startTime}–${conflict.endTime} by ${conflict.bookedBy}). Slot is unavailable.`
-      );
-    } else {
-      const payload = {
-        resource: selectedResource,
-        startTime: bookingStartTime,
-        endTime: bookingEndTime,
-        bookedBy: bookedByTeam || 'Staff Member',
-        status: 'Confirmed',
-      };
-      try {
-        await operationsApi.createBooking(payload);
-      } catch {
-        // Fallback local state update
-      }
-      addBooking(payload);
-      setSuccessMessage(
-        `Booking confirmed for ${selectedResource} from ${bookingStartTime} to ${bookingEndTime}.`
-      );
+    setLoading(true);
+    try {
+      await addBooking({
+        asset_id: parseInt(selectedAssetId),
+        start_time: bookingStart,
+        end_time: bookingEnd,
+      });
+      setSuccessMessage(`Booking confirmed for ${selectedAsset?.name || 'resource'}.`);
+      setBookingStart('');
+      setBookingEnd('');
+    } catch (err) {
+      setOverlapError(err.response?.data?.message || 'Booking failed. Time slot may overlap.');
     }
+    setLoading(false);
+  };
+
+  const formatTime = (dt) => {
+    if (!dt) return '—';
+    return new Date(dt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -89,7 +72,6 @@ const ResourceBooking = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Booking Form Column */}
         <div className="card h-fit">
           <h3 className="text-lg font-bold mb-6 flex items-center gap-2 m-0 text-text-primary">
             <Calendar size={18} className="text-accent-primary" /> Book a Resource Slot
@@ -111,58 +93,38 @@ const ResourceBooking = () => {
 
           <form onSubmit={handleBookingSubmit} className="flex flex-col gap-5">
             <div>
-              <label className="label">Shared Resource</label>
-              <select className="select" value={selectedResource} onChange={e => { setSelectedResource(e.target.value); setOverlapError(null); setSuccessMessage(null); }}>
-                <option value="Conference room B2">Conference room B2</option>
-                <option value="Company Van AF-312">Company Van AF-312</option>
+              <label className="label">Select Resource</label>
+              <select className="select" value={selectedAssetId} onChange={e => { setSelectedAssetId(e.target.value); setOverlapError(null); setSuccessMessage(null); }} required>
+                <option value="">Choose a resource...</option>
+                {sharedAssets.map(a => (
+                  <option key={a.id} value={a.id}>{a.name} ({a.asset_tag})</option>
+                ))}
               </select>
+              {assets.length === 0 && <p className="text-xs text-text-secondary mt-1">No assets available. Register assets first.</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="label">Start Time</label>
-                <select className="select" value={bookingStartTime} onChange={e => { setBookingStartTime(e.target.value); setOverlapError(null); }}>
-                  <option value="09:00">09:00 AM</option>
-                  <option value="09:30">09:30 AM</option>
-                  <option value="10:00">10:00 AM</option>
-                  <option value="11:00">11:00 AM</option>
-                  <option value="12:00">12:00 PM</option>
-                  <option value="14:00">02:00 PM</option>
-                  <option value="15:00">03:00 PM</option>
-                </select>
+                <input type="datetime-local" className="input" value={bookingStart} onChange={e => { setBookingStart(e.target.value); setOverlapError(null); }} required />
               </div>
               <div>
                 <label className="label">End Time</label>
-                <select className="select" value={bookingEndTime} onChange={e => { setBookingEndTime(e.target.value); setOverlapError(null); }}>
-                  <option value="10:00">10:00 AM</option>
-                  <option value="10:30">10:30 AM</option>
-                  <option value="11:00">11:00 AM</option>
-                  <option value="12:00">12:00 PM</option>
-                  <option value="13:00">01:00 PM</option>
-                  <option value="16:00">04:00 PM</option>
-                  <option value="17:00">05:00 PM</option>
-                </select>
+                <input type="datetime-local" className="input" value={bookingEnd} onChange={e => { setBookingEnd(e.target.value); setOverlapError(null); }} required />
               </div>
             </div>
 
-            <div>
-              <label className="label">Booked By / Team</label>
-              <input ref={teamInputRef} type="text" className="input" required value={bookedByTeam} onChange={e => setBookedByTeam(e.target.value)} placeholder="e.g. Engineering Team" />
-            </div>
-
             <div className="mt-2 pt-4 border-t border-border-color">
-              <button type="submit" className="btn btn-primary w-full sm:w-auto">
-                <Plus size={16} /> Confirm Booking
+              <button type="submit" disabled={loading || !selectedAssetId} className="btn btn-primary w-full sm:w-auto">
+                <Plus size={16} /> {loading ? 'Booking...' : 'Confirm Booking'}
               </button>
             </div>
           </form>
         </div>
 
-        {/* Schedule / Timeline Column */}
         <div className="lg:col-span-2 card">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 pb-4 border-b border-border-color gap-2">
-            <h3 className="text-lg font-bold m-0 text-text-primary">Today's Schedule: <span className="text-accent-primary">{selectedResource}</span></h3>
-            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider bg-bg-primary px-3 py-1 rounded-full border border-border-color">All times in local time</span>
+            <h3 className="text-lg font-bold m-0 text-text-primary">Schedule: <span className="text-accent-primary">{selectedAsset?.name || 'Select a resource'}</span></h3>
           </div>
 
           <div className="flex flex-col gap-4">
@@ -172,22 +134,20 @@ const ResourceBooking = () => {
                   <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-accent-primary"></div>
                   <div className="pl-2">
                     <span className="font-bold text-lg text-text-primary flex items-center gap-2">
-                      {b.startTime} <span className="text-text-secondary font-normal text-sm">to</span> {b.endTime}
+                      {formatTime(b.start_time)} <span className="text-text-secondary font-normal text-sm">to</span> {formatTime(b.end_time)}
                     </span>
                     <p className="text-sm text-text-secondary font-medium mt-1 m-0">
-                      Booked by: <span className="text-text-primary">{b.bookedBy}</span>
+                      Booked by: <span className="text-text-primary">{b.user_name || 'You'}</span>
                     </p>
                   </div>
-                  <span className="badge badge-info self-start sm:self-auto px-3 py-1 text-xs">
-                    {b.status}
-                  </span>
+                  <span className="badge badge-info self-start sm:self-auto px-3 py-1 text-xs">{b.status}</span>
                 </div>
               ))
             ) : (
               <div className="p-10 text-center flex flex-col items-center justify-center border-2 border-dashed border-border-color rounded-xl bg-bg-primary">
                 <Calendar size={32} className="mb-3 text-text-secondary opacity-50" />
-                <p className="text-base font-medium text-text-primary m-0">No active bookings today.</p>
-                <p className="text-sm text-text-secondary mt-1 m-0">This resource is completely open.</p>
+                <p className="text-base font-medium text-text-primary m-0">{selectedAssetId ? 'No bookings for this resource.' : 'Select a resource to view schedule.'}</p>
+                <p className="text-sm text-text-secondary mt-1 m-0">Book a time slot using the form.</p>
               </div>
             )}
           </div>

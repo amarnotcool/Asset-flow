@@ -1,8 +1,9 @@
 import express from 'express';
 import { 
   getAllocations, allocateAsset, 
+  getTransfers, createTransfer,
   getBookings, createBooking,
-  getMaintenanceRequests, createMaintenanceRequest
+  getMaintenanceRequests, createMaintenanceRequest, updateMaintenanceStatus
 } from '../controllers/operationsController.js';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 
@@ -14,12 +15,19 @@ router.route('/allocations')
   .get(getAllocations)
   .post(authorizeRoles('Admin', 'Asset Manager'), allocateAsset);
 
+router.route('/transfers')
+  .get(getTransfers)
+  .post(authorizeRoles('Admin', 'Asset Manager'), createTransfer);
+
 router.route('/bookings')
   .get(getBookings)
-  .post(createBooking); // Any logged in user can book
+  .post(createBooking);
 
 router.route('/maintenance')
   .get(getMaintenanceRequests)
   .post(createMaintenanceRequest);
+
+router.route('/maintenance/:id/status')
+  .put(authorizeRoles('Admin', 'Asset Manager'), updateMaintenanceStatus);
 
 export default router;

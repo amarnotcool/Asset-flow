@@ -28,13 +28,18 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
+
 import authRoutes from './routes/authRoutes.routes.js';
 import orgRoutes from './routes/orgRoutes.routes.js';
+import assetRoutes from './routes/assetRoutes.routes.js';
 import operationsRoutes from './routes/operationsRoutes.routes.js';
+import auditRoutes from './routes/auditRoutes.routes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/org', orgRoutes);
+app.use('/api/assets', assetRoutes);
 app.use('/api/operations', operationsRoutes);
+app.use('/api/audits', auditRoutes);
 
 // Global error handler — catches ApiError thrown by controllers
 app.use((err, req, res, next) => {

@@ -1,53 +1,57 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, ArrowRight } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
-import { operationsApi } from '../api';
 
 const Maintenance = () => {
   const columns = ['Pending', 'Approved', 'Technician Assigned', 'In Progress', 'Resolved'];
 
   const [isRaiseModalOpen, setIsRaiseModalOpen] = useState(false);
-  const [issueTitle, setIssueTitle] = useState('');
-  const [selectedAssetTag, setSelectedAssetTag] = useState('AF-0062');
+  const [selectedAssetId, setSelectedAssetId] = useState('');
   const [priorityLevel, setPriorityLevel] = useState('Medium');
   const [issueDescription, setIssueDescription] = useState('');
+  const [errorMsg, setErrorMsg] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const titleInputRef = useRef(null);
-  const { maintenanceTickets, assets, raiseTicket, updateTicketStatus } = useAppStore();
+  const descRef = useRef(null);
+  const { maintenanceTickets, assets, raiseTicket, updateTicketStatus, syncBackendData } = useAppStore();
+
+  useEffect(() => { syncBackendData(); }, []);
 
   useEffect(() => {
-    if (isRaiseModalOpen) {
-      titleInputRef.current?.focus();
-    }
+    if (isRaiseModalOpen) descRef.current?.focus();
   }, [isRaiseModalOpen]);
 
   const handleRaiseSubmit = async (e) => {
     e.preventDefault();
-    if (issueTitle.trim() && selectedAssetTag) {
-      const payload = {
-        title: issueTitle.trim(),
-        asset: selectedAssetTag,
+    if (!selectedAssetId || !issueDescription.trim()) return;
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      await raiseTicket({
+        asset_id: parseInt(selectedAssetId),
+        issue_description: issueDescription.trim(),
         priority: priorityLevel,
-        description: issueDescription.trim() || 'Needs inspection',
-      };
-      try {
-        await operationsApi.createMaintenanceRequest(payload);
-      } catch {
-        // Fallback local update
-      }
-      raiseTicket(payload);
+      });
       setIsRaiseModalOpen(false);
-      setIssueTitle('');
       setIssueDescription('');
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || 'Failed to submit request');
     }
+    setLoading(false);
   };
 
   const getNextStatus = (currentStatus) => {
     const idx = columns.indexOf(currentStatus);
-    if (idx < columns.length - 1) {
-      return columns[idx + 1];
-    }
+    if (idx < columns.length - 1) return columns[idx + 1];
     return null;
+  };
+
+  const handleAdvance = async (ticketId, nextStatus) => {
+    try {
+      await updateTicketStatus(ticketId, nextStatus);
+    } catch (err) {
+      console.error('Failed to update status:', err);
+    }
   };
 
   return (
@@ -62,7 +66,6 @@ const Maintenance = () => {
         </button>
       </div>
 
-      {/* Kanban Board Container */}
       <div className="flex gap-4 overflow-x-auto pb-4 pt-2 flex-1">
         {columns.map((col) => {
           const columnTickets = maintenanceTickets.filter(t => t.status === col);
@@ -78,8 +81,6 @@ const Maintenance = () => {
               <div className="flex flex-col gap-3 overflow-y-auto flex-1 pr-1 custom-scrollbar">
                 {columnTickets.map(ticket => {
                   const nextStage = getNextStatus(ticket.status);
-                  
-                  // Setup clean colors for priorities
                   let priorityStyles = 'bg-slate-50 text-slate-600 border-slate-200';
                   if (ticket.priority === 'High') priorityStyles = 'bg-red-50 text-red-600 border-red-100';
                   if (ticket.priority === 'Medium') priorityStyles = 'bg-amber-50 text-amber-600 border-amber-100';
@@ -89,19 +90,20 @@ const Maintenance = () => {
                     <div key={ticket.id} className="bg-bg-primary border border-border-color rounded-lg p-3.5 flex flex-col gap-3 shadow-sm hover:shadow transition-shadow">
                       <div className="flex items-center justify-between">
                         <span className="text-[11px] font-bold text-accent-primary uppercase tracking-wider">
-                          {ticket.asset}
+                          {ticket.asset_tag || `#${ticket.id}`}
                         </span>
                         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${priorityStyles}`}>
                           {ticket.priority}
                         </span>
                       </div>
                       <p className="text-sm font-medium text-text-primary m-0 leading-snug">
-                        {ticket.title}
+                        {ticket.issue_description || ticket.asset_name}
                       </p>
+                      <p className="text-xs text-text-secondary m-0">By: {ticket.requester_name || '—'}</p>
 
                       {nextStage && (
-                        <button 
-                          onClick={() => updateTicketStatus(ticket.id, nextStage)}
+                        <button
+                          onClick={() => handleAdvance(ticket.id, nextStage)}
                           className="btn btn-outline w-full py-1.5 text-xs text-text-secondary hover:text-text-primary flex items-center justify-center gap-1.5 mt-1 border border-border-color"
                         >
                           Advance <ArrowRight size={13} />
@@ -117,28 +119,26 @@ const Maintenance = () => {
       </div>
 
       <div className="mt-4 pt-4 border-t border-border-color shrink-0 text-xs font-semibold text-text-secondary max-w-7xl">
-        💡 System workflow: Advancing cards allocates the asset status to "Under Maintenance". Resolving them returns status to "Available".
+        💡 System workflow: Advancing cards sets the asset status to "Under Maintenance". Resolving them returns status to "Available".
       </div>
 
-      {/* Raise Ticket Modal */}
       {isRaiseModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
           <div className="card max-w-md w-full shadow-lg border border-border-color bg-bg-secondary p-8 rounded-xl">
             <h3 className="text-xl font-bold mb-6 text-text-primary">Raise Maintenance Request</h3>
 
+            {errorMsg && (
+              <div className="p-3 mb-4 rounded-lg border border-alert-danger bg-alert-danger-bg text-alert-danger font-semibold text-xs">{errorMsg}</div>
+            )}
+
             <form onSubmit={handleRaiseSubmit} className="flex flex-col gap-4">
               <div>
                 <label className="label">Select Asset</label>
-                <select className="select" value={selectedAssetTag} onChange={e => setSelectedAssetTag(e.target.value)}>
-                  {assets.map(a => <option key={a.id} value={a.tag}>{a.tag} – {a.name}</option>)}
+                <select className="select" value={selectedAssetId} onChange={e => setSelectedAssetId(e.target.value)} required>
+                  <option value="">Choose an asset...</option>
+                  {assets.map(a => <option key={a.id} value={a.id}>{a.asset_tag} – {a.name}</option>)}
                 </select>
               </div>
-
-              <div>
-                <label className="label">Issue Title</label>
-                <input ref={titleInputRef} type="text" className="input" required placeholder="e.g. Laptop screen flickering" value={issueTitle} onChange={e => setIssueTitle(e.target.value)} />
-              </div>
-
               <div>
                 <label className="label">Priority Level</label>
                 <select className="select" value={priorityLevel} onChange={e => setPriorityLevel(e.target.value)}>
@@ -147,15 +147,13 @@ const Maintenance = () => {
                   <option value="Low">Low</option>
                 </select>
               </div>
-
               <div>
-                <label className="label">Detailed Issue Description</label>
-                <textarea className="input text-sm" rows={3} placeholder="Provide details of the bug or ticket..." value={issueDescription} onChange={e => setIssueDescription(e.target.value)} />
+                <label className="label">Issue Description</label>
+                <textarea ref={descRef} className="input text-sm" rows={3} required placeholder="Describe the issue in detail..." value={issueDescription} onChange={e => setIssueDescription(e.target.value)} />
               </div>
-
               <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border-color">
-                <button type="button" onClick={() => setIsRaiseModalOpen(false)} className="btn btn-outline">Cancel</button>
-                <button type="submit" className="btn btn-primary">Submit Request</button>
+                <button type="button" onClick={() => { setIsRaiseModalOpen(false); setErrorMsg(null); }} className="btn btn-outline">Cancel</button>
+                <button type="submit" disabled={loading} className="btn btn-primary">{loading ? 'Submitting...' : 'Submit Request'}</button>
               </div>
             </form>
           </div>
