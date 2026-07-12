@@ -138,8 +138,8 @@ const Maintenance = () => {
                             <option value="External Vendor">External Vendor</option>
                           </select>
                           <div className="flex gap-1">
-                            <button type="submit" className="btn btn-primary py-1 px-2 text-[10px] flex-1">Assign</button>
-                            <button type="button" onClick={() => setAssigningTicketId(null)} className="btn btn-outline py-1 px-2 text-[10px]">Cancel</button>
+                            <button type="submit" className="btn btn-primary py-1 !px-2 !gap-1 text-[10px] flex-1 min-w-0">Assign</button>
+                            <button type="button" onClick={() => setAssigningTicketId(null)} className="btn btn-outline py-1 !px-2 !gap-1 text-[10px] flex-1 min-w-0">Cancel</button>
                           </div>
                         </form>
                       )}
@@ -149,15 +149,15 @@ const Maintenance = () => {
                         {nextStage && assigningTicketId !== ticket.id && (
                           <button 
                             onClick={() => handleAdvance(ticket, nextStage)}
-                            className="btn btn-outline flex-1 py-1 text-[10px] text-text-secondary hover:text-text-primary"
+                            className="btn btn-outline flex-1 py-1 !px-2 !gap-1 text-[10px] text-text-secondary hover:text-text-primary min-w-0"
                           >
-                            Advance <ArrowRight size={10} />
+                            Advance <ArrowRight size={10} className="shrink-0" />
                           </button>
                         )}
                         {col === 'Pending' && (
                           <button 
                             onClick={() => updateTicketStatus(ticket.id, 'Rejected')}
-                            className="btn btn-outline py-1 px-2 text-[10px] border-alert-danger text-alert-danger hover:bg-alert-danger hover:text-white"
+                            className="btn btn-outline flex-1 py-1 !px-2 !gap-1 text-[10px] border-alert-danger text-alert-danger hover:bg-alert-danger hover:text-white min-w-0"
                           >
                             Reject
                           </button>
