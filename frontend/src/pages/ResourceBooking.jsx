@@ -83,46 +83,36 @@ const ResourceBooking = () => {
     <div className="flex flex-col">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">Resource Booking</h1>
-          <p className="text-sm text-text-secondary mt-1">
-            Book shared rooms, vehicles, and equipment with automatic overlap prevention
-          </p>
+          <h1 className="text-2xl font-bold text-text-primary m-0">Resource Booking</h1>
+          <p className="text-sm text-text-secondary mt-1 m-0">Book shared rooms, vehicles, and equipment with automatic overlap prevention</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Booking Form Column */}
-        <div className="card">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+        <div className="card h-fit">
+          <h3 className="text-lg font-bold mb-6 flex items-center gap-2 m-0 text-text-primary">
             <Calendar size={18} className="text-accent-primary" /> Book a Resource Slot
           </h3>
 
           {overlapError && (
-            <div className="p-3 rounded-lg text-xs bg-alert-danger-bg text-alert-danger border-l-4 border-alert-danger mb-4 flex items-start gap-2">
-              <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+            <div className="alert alert-danger mb-5">
+              <AlertTriangle size={18} className="shrink-0" />
               <span>{overlapError}</span>
             </div>
           )}
 
           {successMessage && (
-            <div className="p-3 rounded-lg text-xs bg-alert-success-bg text-alert-success border-l-4 border-alert-success mb-4 flex items-start gap-2">
-              <CheckCircle size={16} className="shrink-0 mt-0.5" />
+            <div className="alert alert-success mb-5">
+              <CheckCircle size={18} className="shrink-0" />
               <span>{successMessage}</span>
             </div>
           )}
 
-          <form onSubmit={handleBookingSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleBookingSubmit} className="flex flex-col gap-5">
             <div>
               <label className="label">Shared Resource</label>
-              <select
-                className="select"
-                value={selectedResource}
-                onChange={(e) => {
-                  setSelectedResource(e.target.value);
-                  setOverlapError(null);
-                  setSuccessMessage(null);
-                }}
-              >
+              <select className="select" value={selectedResource} onChange={e => { setSelectedResource(e.target.value); setOverlapError(null); setSuccessMessage(null); }}>
                 <option value="Conference room B2">Conference room B2</option>
                 <option value="Company Van AF-312">Company Van AF-312</option>
               </select>
@@ -131,14 +121,7 @@ const ResourceBooking = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="label">Start Time</label>
-                <select
-                  className="select"
-                  value={bookingStartTime}
-                  onChange={(e) => {
-                    setBookingStartTime(e.target.value);
-                    setOverlapError(null);
-                  }}
-                >
+                <select className="select" value={bookingStartTime} onChange={e => { setBookingStartTime(e.target.value); setOverlapError(null); }}>
                   <option value="09:00">09:00 AM</option>
                   <option value="09:30">09:30 AM</option>
                   <option value="10:00">10:00 AM</option>
@@ -150,14 +133,7 @@ const ResourceBooking = () => {
               </div>
               <div>
                 <label className="label">End Time</label>
-                <select
-                  className="select"
-                  value={bookingEndTime}
-                  onChange={(e) => {
-                    setBookingEndTime(e.target.value);
-                    setOverlapError(null);
-                  }}
-                >
+                <select className="select" value={bookingEndTime} onChange={e => { setBookingEndTime(e.target.value); setOverlapError(null); }}>
                   <option value="10:00">10:00 AM</option>
                   <option value="10:30">10:30 AM</option>
                   <option value="11:00">11:00 AM</option>
@@ -171,54 +147,48 @@ const ResourceBooking = () => {
 
             <div>
               <label className="label">Booked By / Team</label>
-              <input
-                ref={teamInputRef}
-                type="text"
-                className="input"
-                required
-                value={bookedByTeam}
-                onChange={(e) => setBookedByTeam(e.target.value)}
-                placeholder="e.g. Engineering Team"
-              />
+              <input ref={teamInputRef} type="text" className="input" required value={bookedByTeam} onChange={e => setBookedByTeam(e.target.value)} placeholder="e.g. Engineering Team" />
             </div>
 
-            <button type="submit" className="btn btn-primary cursor-pointer mt-2">
-              <Plus size={16} /> Confirm Booking
-            </button>
+            <div className="mt-2 pt-4 border-t border-border-color">
+              <button type="submit" className="btn btn-primary w-full sm:w-auto">
+                <Plus size={16} /> Confirm Booking
+              </button>
+            </div>
           </form>
         </div>
 
         {/* Schedule / Timeline Column */}
         <div className="lg:col-span-2 card">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold">Today's Schedule: {selectedResource}</h3>
-            <span className="text-xs text-text-secondary">All times in local time</span>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 pb-4 border-b border-border-color gap-2">
+            <h3 className="text-lg font-bold m-0 text-text-primary">Today's Schedule: <span className="text-accent-primary">{selectedResource}</span></h3>
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider bg-bg-primary px-3 py-1 rounded-full border border-border-color">All times in local time</span>
           </div>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
             {resourceBookings.length > 0 ? (
               resourceBookings.map((b) => (
-                <div
-                  key={b.id}
-                  className="p-4 rounded-lg bg-[#e0f2fe] border-l-4 border-accent-primary flex justify-between items-center"
-                >
-                  <div>
-                    <span className="font-bold text-sm text-accent-primary">
-                      {b.startTime} – {b.endTime}
+                <div key={b.id} className="p-4 rounded-xl bg-bg-primary border border-border-color flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 relative overflow-hidden shadow-sm hover:border-accent-primary transition-colors">
+                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-accent-primary"></div>
+                  <div className="pl-2">
+                    <span className="font-bold text-lg text-text-primary flex items-center gap-2">
+                      {b.startTime} <span className="text-text-secondary font-normal text-sm">to</span> {b.endTime}
                     </span>
-                    <p className="text-sm text-text-primary font-medium mt-1">
-                      Booked by: {b.bookedBy}
+                    <p className="text-sm text-text-secondary font-medium mt-1 m-0">
+                      Booked by: <span className="text-text-primary">{b.bookedBy}</span>
                     </p>
                   </div>
-                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-white text-accent-primary">
+                  <span className="badge badge-info self-start sm:self-auto px-3 py-1 text-xs">
                     {b.status}
                   </span>
                 </div>
               ))
             ) : (
-              <p className="text-sm text-text-secondary py-8 text-center">
-                No active bookings for {selectedResource} today. Slot is open!
-              </p>
+              <div className="p-10 text-center flex flex-col items-center justify-center border-2 border-dashed border-border-color rounded-xl bg-bg-primary">
+                <Calendar size={32} className="mb-3 text-text-secondary opacity-50" />
+                <p className="text-base font-medium text-text-primary m-0">No active bookings today.</p>
+                <p className="text-sm text-text-secondary mt-1 m-0">This resource is completely open.</p>
+              </div>
             )}
           </div>
         </div>

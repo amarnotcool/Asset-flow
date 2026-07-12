@@ -35,12 +35,12 @@ const AppLayout = () => {
     <div className="flex h-screen w-screen overflow-hidden">
       {/* Sidebar */}
       <aside className="w-[260px] bg-sidebar-bg text-sidebar-text flex flex-col shrink-0">
-        <div className="p-6 border-b border-white/10">
-          <h2 className="text-2xl font-bold text-white">AssetFlow</h2>
+        <div className="p-6 border-b border-white/10 shrink-0">
+          <h2 className="text-2xl font-bold text-white m-0">AssetFlow</h2>
         </div>
         
         <nav className="flex flex-col py-4 flex-1 overflow-y-auto">
-          <NavLink to="/" className={navItemClass}>
+          <NavLink to="/" end className={navItemClass}>
             <LayoutDashboard size={20} /> Dashboard
           </NavLink>
           
@@ -82,12 +82,12 @@ const AppLayout = () => {
           </NavLink>
         </nav>
 
-        <div className="p-6 border-t border-white/10 flex justify-between items-center">
+        <div className="p-6 border-t border-white/10 shrink-0 flex justify-between items-center">
           <div className="flex flex-col">
             <span className="font-semibold text-white text-sm">{user?.name || 'User'}</span>
             <span className="text-xs text-white/60">{user?.role || 'Role'}</span>
           </div>
-          <button className="bg-transparent border-0 text-white/60 flex items-center transition-colors duration-200 hover:text-white cursor-pointer" onClick={handleLogout}>
+          <button className="bg-transparent border-0 text-white/60 flex items-center transition-colors duration-200 hover:text-white cursor-pointer p-0" onClick={handleLogout}>
             <LogOut size={18} /> Logout
           </button>
         </div>
