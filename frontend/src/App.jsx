@@ -9,13 +9,11 @@ import Dashboard from './pages/Dashboard';
 import OrganizationSetup from './pages/OrganizationSetup';
 
 // Temporary Mock Pages
-const AssetDirectory = () => <div><h2>Asset Directory</h2></div>;
-const AllocationTransfer = () => <div><h2>Allocation & Transfer</h2></div>;
-const ResourceBooking = () => <div><h2>Resource Booking</h2></div>;
-const Maintenance = () => <div><h2>Maintenance Management</h2></div>;
-const Audit = () => <div><h2>Audits</h2></div>;
-const Reports = () => <div><h2>Reports</h2></div>;
-const Notifications = () => <div><h2>Notifications</h2></div>;
+import AssetDirectory from './pages/AssetDirectory';
+import AllocationTransfer from './pages/AllocationTransfer';
+import ResourceBooking from './pages/ResourceBooking';
+import Maintenance from './pages/Maintenance';
+import { Audit, Reports, Notifications } from './pages/Stubs';
 
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
