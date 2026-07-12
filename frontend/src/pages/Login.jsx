@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { authApi } from '../api';
-import { PackageSearch } from 'lucide-react';
+import { User } from 'lucide-react';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -82,16 +82,14 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen w-screen flex items-center justify-center bg-gradient-to-br from-bg-primary to-[#e2e8f0] p-4">
-      <div className="card w-full max-w-[420px] p-10 shadow-lg flex flex-col">
+    <div className="min-h-screen w-screen flex items-center justify-center bg-gradient-to-br from-[#f0f4f8] to-[#d9e2ec] p-4">
+      <div className="card w-full max-w-[400px] p-8 shadow-lg flex flex-col border-2 border-border-color">
+        {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-alert-success-bg text-accent-primary rounded-2xl mx-auto mb-4 flex items-center justify-center">
-            <PackageSearch size={28} />
+          <h1 className="text-xl font-bold text-text-primary mb-6">AssetFlow – {isLoginView ? 'login' : 'sign up'}</h1>
+          <div className="w-16 h-16 rounded-full border-2 border-border-color mx-auto flex items-center justify-center bg-bg-primary">
+            <User size={28} className="text-text-secondary" />
           </div>
-          <h2 className="text-2xl font-bold text-text-primary mb-2">AssetFlow</h2>
-          <p className="text-text-secondary text-sm">
-            {isLoginView ? 'Welcome back to your workspace' : 'Create an employee account'}
-          </p>
         </div>
 
         {errorMessage && (
@@ -100,25 +98,25 @@ const Login = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col">
-          <div className="flex flex-col">
-            <label className="label">Email Address</label>
-            <input
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <div className="flex flex-col gap-1">
+            <label className="label">Email</label>
+            <input 
               ref={emailInputRef}
-              type="email"
-              className="input"
+              type="email" 
+              className="input" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
 
-          <div className="flex flex-col mt-4">
-            <div className="flex justify-between items-center mb-1">
+          <div className="flex flex-col gap-1">
+            <div className="flex justify-between items-center">
               <label className="label mb-0">Password</label>
               {isLoginView && (
-                <a href="#forgot" className="text-xs text-accent-primary font-medium hover:underline">
-                  Forgot password?
+                <a href="#" className="text-xs text-text-secondary hover:text-accent-primary transition-colors no-underline">
+                  Forgot password
                 </a>
               )}
             </div>
@@ -134,37 +132,32 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="btn btn-primary w-full py-3 text-base mt-4 cursor-pointer"
+            className="btn btn-primary w-full py-3 text-base mt-1"
           >
             {loading ? 'Authenticating...' : isLoginView ? 'Sign In' : 'Create Account'}
           </button>
         </form>
 
-        <div className="mt-6">
-          <div className="flex items-center text-center text-text-secondary text-sm">
-            <div className="flex-1 border-b border-border-color"></div>
-            <span className="px-3">or</span>
-            <div className="flex-1 border-b border-border-color"></div>
-          </div>
-          <div className="text-center text-sm text-text-secondary mt-4">
-            {isLoginView ? (
-              <p>
-                New here? <br />
-                <span className="block text-xs mt-1 text-text-primary">
-                  Sign up creates an employee account. (Admin roles assigned later).
-                </span>
-              </p>
-            ) : (
-              <p>Already have an account?</p>
-            )}
-            <button
-              type="button"
-              className="btn btn-outline w-full mt-3 cursor-pointer"
-              onClick={() => setIsLoginView(!isLoginView)}
-            >
-              {isLoginView ? 'Create an Account' : 'Sign In instead'}
-            </button>
-          </div>
+        <div className="mt-8 pt-6 border-t border-border-color">
+          {isLoginView ? (
+            <div className="text-center">
+              <p className="text-sm text-text-secondary mb-1">New here?</p>
+              <div className="border border-border-color rounded-lg p-3 mb-4 bg-bg-primary">
+                <p className="text-xs text-text-primary leading-relaxed m-0">
+                  Sign up creates an employee account.<br/>Admin roles assigned later.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-text-secondary text-center mb-3">Already have an account?</p>
+          )}
+          <button 
+            type="button" 
+            className="btn btn-outline w-full py-2.5" 
+            onClick={() => setIsLoginView(!isLoginView)}
+          >
+            {isLoginView ? 'Create Account' : 'Sign In instead'}
+          </button>
         </div>
       </div>
     </div>
