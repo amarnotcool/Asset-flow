@@ -6,8 +6,9 @@ import Login from './pages/Login';
 
 import Dashboard from './pages/Dashboard';
 
+import OrganizationSetup from './pages/OrganizationSetup';
+
 // Temporary Mock Pages
-const OrganizationSetup = () => <div><h2>Organization Setup</h2></div>;
 const AssetDirectory = () => <div><h2>Asset Directory</h2></div>;
 const AllocationTransfer = () => <div><h2>Allocation & Transfer</h2></div>;
 const ResourceBooking = () => <div><h2>Resource Booking</h2></div>;
