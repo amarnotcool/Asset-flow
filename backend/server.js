@@ -15,6 +15,7 @@ app.use(express.json());
 // Main Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/org', orgRoutes);
+app.use('/api/operations', (await import('./src/routes/operationsRoutes.js')).default);
 
 const PORT = process.env.PORT || 5000;
 
