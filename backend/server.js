@@ -1,5 +1,5 @@
-import {setServer} from "dns";
-setServer(["8.8.8.8","1.1.1.1"]);
+import {setServers} from "dns";
+setServers(["8.8.8.8","1.1.1.1"]);
 
 import { configDotenv } from "dotenv";
 configDotenv();
