@@ -61,24 +61,10 @@ const Login = () => {
         }
       }
     } catch (err) {
-      console.warn('Backend auth request offline or invalid. Falling back to local auth state.', err);
+      console.warn('Backend auth error', err);
+      setErrorMessage(err.response?.data?.message || 'Authentication failed. Please try again.');
     }
-
-    // Fallback local mock authentication
-    let mockRole = 'Employee';
-    if (email.includes('admin')) mockRole = 'Admin';
-    if (email.includes('manager')) mockRole = 'Asset Manager';
-    if (email.includes('head')) mockRole = 'Department Head';
-
-    login({
-      id: 1,
-      name: email.split('@')[0],
-      email,
-      role: mockRole,
-      department_id: 1,
-    });
     setLoading(false);
-    navigate('/');
   };
 
   return (
