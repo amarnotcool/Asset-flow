@@ -126,6 +126,6 @@ npm run dev
 
 ## 🔑 Cozy Access Key
 Login details to quickly evaluate the application flow:
-* **Username**: `name@company.com`
-* **Password**: `password123`
-* Default Role: **Employee**
+* **Username**: `admin@assetflow.com`
+* **Password**: `adminpassword123`
+* Default Role: **Admin**
