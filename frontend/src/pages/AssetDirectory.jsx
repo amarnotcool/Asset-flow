@@ -112,7 +112,7 @@ const AssetDirectory = () => {
       <div className="card mb-6 p-4">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           <div className="flex flex-1 gap-2 relative">
-            <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary" />
+            <Search size={0} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary" />
             <input
               ref={searchInputRef}
               type="text"
@@ -201,7 +201,7 @@ const AssetDirectory = () => {
         <>
           {/* Overlay */}
           <div className="fixed inset-0 bg-black/20 z-40" onClick={() => setSelectedAsset(null)}></div>
-          
+
           {/* Drawer */}
           <div className="fixed top-0 right-0 h-full w-[400px] max-w-[90vw] bg-bg-secondary border-l border-border-color shadow-2xl z-50 flex flex-col transform transition-transform duration-300">
             {/* Drawer Header */}
@@ -220,7 +220,7 @@ const AssetDirectory = () => {
 
             {/* Drawer Content */}
             <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-6 custom-scrollbar">
-              
+
               {/* Core Details */}
               <div>
                 <h4 className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">Asset Details</h4>
@@ -267,7 +267,7 @@ const AssetDirectory = () => {
                   <span>Lifecycle History</span>
                   <span className="badge badge-neutral text-[10px]">{getAssetHistory(selectedAsset.asset_tag).length} records</span>
                 </h4>
-                
+
                 <div className="relative pl-6">
                   {/* Vertical Line */}
                   <div className="absolute left-[0.55rem] top-2 bottom-0 w-px bg-border-color"></div>
@@ -278,7 +278,7 @@ const AssetDirectory = () => {
                         <div key={idx} className="relative">
                           {/* Dot */}
                           <div className={`absolute -left-[1.8rem] top-1 w-2.5 h-2.5 rounded-full border-2 border-bg-secondary ${record.type === 'allocation' ? 'bg-accent-primary' : 'bg-alert-warning'}`}></div>
-                          
+
                           {/* Content */}
                           <div className="bg-bg-primary border border-border-color rounded-lg p-3">
                             <div className="flex justify-between items-start mb-2">
@@ -295,7 +295,7 @@ const AssetDirectory = () => {
                               <div className="text-xs text-text-secondary">
                                 <p className="mb-1"><strong>Action:</strong> <span className={`badge ${record.data.status === 'Active' ? 'badge-info' : 'badge-neutral'} px-1.5 py-0`}>{record.data.status}</span></p>
                                 <p className="mb-1"><strong>User:</strong> {record.data.user} {record.data.department !== '--' ? `(${record.data.department})` : ''}</p>
-                                {record.data.status === 'Returned' && <p><strong>Returned on:</strong> {record.data.returnedDate} <br/> <strong>Notes:</strong> {record.data.conditionNotes || 'None'}</p>}
+                                {record.data.status === 'Returned' && <p><strong>Returned on:</strong> {record.data.returnedDate} <br /> <strong>Notes:</strong> {record.data.conditionNotes || 'None'}</p>}
                                 {record.data.status === 'Active' && record.data.expectedReturn && <p><strong>Expected Return:</strong> {record.data.expectedReturn}</p>}
                               </div>
                             ) : (
