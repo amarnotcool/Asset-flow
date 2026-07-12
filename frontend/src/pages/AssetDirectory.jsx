@@ -3,7 +3,6 @@ import { Search, Plus, QrCode } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 
 const AssetDirectory = () => {
-  // Simple action-oriented useState variables
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -20,7 +19,6 @@ const AssetDirectory = () => {
 
   const { assets, categories, registerAsset } = useAppStore();
 
-  // useEffect + useRef: Auto-focus register input when register modal opens
   useEffect(() => {
     if (isRegisterModalOpen) {
       registerNameRef.current?.focus();
@@ -58,11 +56,26 @@ const AssetDirectory = () => {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'Available':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+      case 'Allocated':
+        return 'bg-blue-50 text-blue-700 border-blue-100';
+      case 'Under Maintenance':
+        return 'bg-amber-50 text-amber-700 border-amber-100';
+      case 'Reserved':
+        return 'bg-indigo-50 text-indigo-700 border-indigo-100';
+      default:
+        return 'bg-slate-50 text-slate-700 border-slate-100';
+    }
+  };
+
   return (
     <div className="flex flex-col">
-      <div className="flex justify-between items-center mb-6 shrink-0">
+      <div className="card flex justify-between items-center mb-6 shrink-0 flex-row">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary m-0">Asset Directory</h1>
+          <h1 className="text-2xl font-bold text-text-primary m-0 tracking-tight">Asset Directory</h1>
           <p className="text-sm text-text-secondary mt-1 m-0">Search, track, and manage all physical assets across locations</p>
         </div>
         <button onClick={() => setIsRegisterModalOpen(true)} className="btn btn-primary whitespace-nowrap">
@@ -111,47 +124,48 @@ const AssetDirectory = () => {
         </div>
       </div>
 
-      <div className="card p-0 overflow-hidden">
+      <div className="card p-0 overflow-hidden shadow-sm">
         <div className="w-full overflow-x-auto">
           <table className="w-full border-collapse text-left m-0">
             <thead>
-              <tr>
-                <th className="th">Asset Tag</th>
-                <th className="th">Name</th>
-                <th className="th">Category</th>
-                <th className="th">Status</th>
-                <th className="th">Current Holder</th>
-                <th className="th">Location</th>
-                <th className="th">Condition</th>
+              <tr className="bg-bg-secondary border-b border-border-color">
+                <th className="th py-3 px-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Asset Tag</th>
+                <th className="th py-3 px-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Name</th>
+                <th className="th py-3 px-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Category</th>
+                <th className="th py-3 px-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Status</th>
+                <th className="th py-3 px-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Current Holder</th>
+                <th className="th py-3 px-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Location</th>
+                <th className="th py-3 px-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Condition</th>
               </tr>
             </thead>
             <tbody>
               {filteredAssets.length > 0 ? (
                 filteredAssets.map((asset) => (
-                  <tr key={asset.id} className="hover:bg-black/[0.01]">
-                    <td className="td">
-                      <span className="inline-flex items-center gap-1.5 font-semibold text-accent-primary">
+                  <tr key={asset.id} className="hover:bg-bg-secondary/40 transition-colors border-b border-border-color last:border-b-0">
+                    <td className="td py-3 px-4 text-sm">
+                      <span className="inline-flex items-center gap-1.5 font-bold text-accent-primary">
                         <QrCode size={14} /> {asset.tag}
                       </span>
                     </td>
-                    <td className="td"><strong>{asset.name}</strong></td>
-                    <td className="td">{asset.category}</td>
-                    <td className="td">
-                      <span className={`badge ${
-                        asset.status === 'Available' ? 'badge-success' : 
-                        asset.status === 'Allocated' ? 'badge-info' : 'badge-warning'
-                      }`}>
+                    <td className="td py-3 px-4 text-sm font-semibold text-text-primary">{asset.name}</td>
+                    <td className="td py-3 px-4 text-sm text-text-secondary">{asset.category}</td>
+                    <td className="td py-3 px-4 text-sm">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${getStatusBadge(asset.status)}`}>
                         {asset.status}
                       </span>
                     </td>
-                    <td className="td">{asset.holder || '--'}</td>
-                    <td className="td">{asset.location}</td>
-                    <td className="td">{asset.condition}</td>
+                    <td className="td py-3 px-4 text-sm text-text-primary">{asset.holder || '—'}</td>
+                    <td className="td py-3 px-4 text-sm text-text-secondary">{asset.location}</td>
+                    <td className="td py-3 px-4 text-sm text-text-primary">
+                      <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-[#f1f5f9] text-[#475569] border border-[#e2e8f0]">
+                        {asset.condition}
+                      </span>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-text-secondary">
+                  <td colSpan={7} className="p-8 text-center text-text-secondary text-sm">
                     No assets found matching your filter criteria.
                   </td>
                 </tr>
@@ -163,8 +177,8 @@ const AssetDirectory = () => {
 
       {/* Register Modal */}
       {isRegisterModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="card max-w-md w-full shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="card max-w-md w-full shadow-lg border border-border-color bg-bg-secondary p-8 rounded-xl">
             <h3 className="text-xl font-bold mb-6 text-text-primary">Register New Asset</h3>
 
             <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4">

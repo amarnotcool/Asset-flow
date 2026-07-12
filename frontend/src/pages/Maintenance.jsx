@@ -6,7 +6,6 @@ import { operationsApi } from '../api';
 const Maintenance = () => {
   const columns = ['Pending', 'Approved', 'Technician Assigned', 'In Progress', 'Resolved'];
 
-  // Simple action-oriented useState variables
   const [isRaiseModalOpen, setIsRaiseModalOpen] = useState(false);
   const [issueTitle, setIssueTitle] = useState('');
   const [selectedAssetTag, setSelectedAssetTag] = useState('AF-0062');
@@ -16,7 +15,6 @@ const Maintenance = () => {
   const titleInputRef = useRef(null);
   const { maintenanceTickets, assets, raiseTicket, updateTicketStatus } = useAppStore();
 
-  // useEffect + useRef: Auto-focus Issue Title input when Raise Request modal opens
   useEffect(() => {
     if (isRaiseModalOpen) {
       titleInputRef.current?.focus();
@@ -54,10 +52,10 @@ const Maintenance = () => {
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
-      <div className="flex justify-between items-center mb-6 shrink-0">
+      <div className="card flex justify-between items-center mb-6 shrink-0 max-w-7xl flex-row">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary m-0">Maintenance Management</h1>
-          <p className="text-sm text-text-secondary mt-1 m-0">Route asset repair requests through approval workflows before work begins</p>
+          <h1 className="text-2xl font-bold text-text-primary m-0 tracking-tight">Maintenance Pipeline</h1>
+          <p className="text-sm text-text-secondary mt-1 m-0">Route asset repair requests through status columns</p>
         </div>
         <button onClick={() => setIsRaiseModalOpen(true)} className="btn btn-primary whitespace-nowrap">
           <Plus size={16} /> Raise Request
@@ -65,14 +63,14 @@ const Maintenance = () => {
       </div>
 
       {/* Kanban Board Container */}
-      <div className="kanban-board">
+      <div className="flex gap-4 overflow-x-auto pb-4 pt-2 flex-1">
         {columns.map((col) => {
           const columnTickets = maintenanceTickets.filter(t => t.status === col);
           return (
-            <div key={col} className="kanban-column">
+            <div key={col} className="flex-none w-[290px] bg-bg-secondary border border-border-color rounded-xl p-4 flex flex-col h-full shadow-sm">
               <div className="flex justify-between items-center mb-4 shrink-0">
-                <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider m-0">{col}</h3>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-border-color text-text-primary">
+                <h3 className="text-sm font-bold text-text-primary m-0">{col}</h3>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-bg-primary text-text-secondary border border-border-color">
                   {columnTickets.length}
                 </span>
               </div>
@@ -81,42 +79,32 @@ const Maintenance = () => {
                 {columnTickets.map(ticket => {
                   const nextStage = getNextStatus(ticket.status);
                   
-                  // Determine priority badge style
-                  let prioClass = 'badge-neutral';
-                  if (ticket.priority === 'High') prioClass = 'badge-danger';
-                  if (ticket.priority === 'Medium') prioClass = 'badge-warning';
-
-                  // Determine card border color
-                  let borderClass = 'border-border-color hover:border-text-secondary';
-                  if (col === 'Resolved') borderClass = 'border-alert-success';
-                  else if (col === 'Pending') borderClass = 'border-accent-primary';
-                  else if (col === 'In Progress') borderClass = 'border-alert-warning';
+                  // Setup clean colors for priorities
+                  let priorityStyles = 'bg-slate-50 text-slate-600 border-slate-200';
+                  if (ticket.priority === 'High') priorityStyles = 'bg-red-50 text-red-600 border-red-100';
+                  if (ticket.priority === 'Medium') priorityStyles = 'bg-amber-50 text-amber-600 border-amber-100';
+                  if (ticket.priority === 'Low') priorityStyles = 'bg-blue-50 text-blue-600 border-blue-100';
 
                   return (
-                    <div key={ticket.id} className={`kanban-card transition-colors ${borderClass} border-l-4`}>
-                      <div>
-                        <div className="flex justify-between items-center mb-3">
-                          <span className="badge badge-info tracking-wider">
-                            {ticket.asset}
-                          </span>
-                          <span className={`badge ${prioClass}`}>
-                            {ticket.priority}
-                          </span>
-                        </div>
-                        <p className="text-sm font-semibold text-text-primary leading-snug m-0">
-                          {ticket.title}
-                        </p>
+                    <div key={ticket.id} className="bg-bg-primary border border-border-color rounded-lg p-3.5 flex flex-col gap-3 shadow-sm hover:shadow transition-shadow">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-accent-primary uppercase tracking-wider">
+                          {ticket.asset}
+                        </span>
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${priorityStyles}`}>
+                          {ticket.priority}
+                        </span>
                       </div>
+                      <p className="text-sm font-medium text-text-primary m-0 leading-snug">
+                        {ticket.title}
+                      </p>
 
                       {nextStage && (
                         <button 
                           onClick={() => updateTicketStatus(ticket.id, nextStage)}
-                          className="btn btn-outline text-[11px] py-1.5 px-2 w-full mt-1 flex justify-between group"
+                          className="btn btn-outline w-full py-1.5 text-xs text-text-secondary hover:text-text-primary flex items-center justify-center gap-1.5 mt-1 border border-border-color"
                         >
-                          <span className="font-semibold text-text-secondary group-hover:text-text-primary transition-colors">Advance</span>
-                          <span className="flex items-center gap-1 text-accent-primary font-semibold">
-                            {nextStage} <ArrowRight size={12} />
-                          </span>
+                          Advance <ArrowRight size={13} />
                         </button>
                       )}
                     </div>
@@ -128,14 +116,14 @@ const Maintenance = () => {
         })}
       </div>
 
-      <p className="mt-4 text-text-secondary text-xs shrink-0 bg-bg-secondary p-3 rounded-lg border border-border-color m-0 font-medium">
-        <span className="text-accent-primary mr-1">💡 System Note:</span> Advancing a request to 'Approved' sets the asset status to 'Under Maintenance'. Advancing to 'Resolved' restores the asset status to 'Available'.
-      </p>
+      <div className="mt-4 pt-4 border-t border-border-color shrink-0 text-xs font-semibold text-text-secondary max-w-7xl">
+        💡 System workflow: Advancing cards allocates the asset status to "Under Maintenance". Resolving them returns status to "Available".
+      </div>
 
       {/* Raise Ticket Modal */}
       {isRaiseModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="card max-w-md w-full shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="card max-w-md w-full shadow-lg border border-border-color bg-bg-secondary p-8 rounded-xl">
             <h3 className="text-xl font-bold mb-6 text-text-primary">Raise Maintenance Request</h3>
 
             <form onSubmit={handleRaiseSubmit} className="flex flex-col gap-4">
@@ -148,7 +136,7 @@ const Maintenance = () => {
 
               <div>
                 <label className="label">Issue Title</label>
-                <input ref={titleInputRef} type="text" className="input" required placeholder="e.g. Projector bulb blinking red" value={issueTitle} onChange={e => setIssueTitle(e.target.value)} />
+                <input ref={titleInputRef} type="text" className="input" required placeholder="e.g. Laptop screen flickering" value={issueTitle} onChange={e => setIssueTitle(e.target.value)} />
               </div>
 
               <div>
@@ -162,7 +150,7 @@ const Maintenance = () => {
 
               <div>
                 <label className="label">Detailed Issue Description</label>
-                <textarea className="input" rows={3} placeholder="Describe the condition or error observed..." value={issueDescription} onChange={e => setIssueDescription(e.target.value)} />
+                <textarea className="input text-sm" rows={3} placeholder="Provide details of the bug or ticket..." value={issueDescription} onChange={e => setIssueDescription(e.target.value)} />
               </div>
 
               <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border-color">
