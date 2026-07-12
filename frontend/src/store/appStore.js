@@ -12,7 +12,17 @@ export const useAppStore = create((set, get) => ({
   bookings: [],
   maintenanceTickets: [],
   audits: [],
+  transferRequests: [],
+  allocationHistory: [],
+  auditCycles: [],
+  notifications: [],
+  activityLog: [],
   isLoading: false,
+
+  // Computed Helpers (Stubs for UI compatibility)
+  getOverdueAllocations: () => [],
+  getPendingTransferCount: () => 0,
+  getUnreadNotificationCount: () => 0,
 
   // ─── SYNC ALL DATA FROM BACKEND ───
   syncBackendData: async () => {
