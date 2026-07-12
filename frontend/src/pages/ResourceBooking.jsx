@@ -20,10 +20,10 @@ const ResourceBooking = () => {
   const sharedAssets = assets.filter(a => a.is_shared || a.status === 'Available');
 
   useEffect(() => {
-    if (sharedAssets.length > 0 && !selectedResource) {
-      setSelectedResource(sharedAssets[0].name);
+    if (sharedAssets.length > 0 && !selectedAssetId) {
+      setSelectedAssetId(sharedAssets[0].id.toString());
     }
-  }, [sharedAssets, selectedResource]);
+  }, [sharedAssets, selectedAssetId]);
 
   // Auto-dismiss messages
   useEffect(() => {
