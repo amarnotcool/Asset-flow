@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, CheckCircle, XCircle } from 'lucide-react';
-import './OrganizationSetup.css';
 
 const OrganizationSetup = () => {
   const [activeTab, setActiveTab] = useState('departments');
@@ -24,10 +23,21 @@ const OrganizationSetup = () => {
     { id: 3, name: 'Aditi Rao', email: 'aditi@company.com', dept: 'Engineering', role: 'Department Head', status: 'Active' },
   ];
 
+  const tabBtnClass = (tabName) =>
+    `bg-transparent border-0 text-[0.95rem] py-3 px-2 relative transition-colors duration-200 cursor-pointer ${
+      activeTab === tabName
+        ? 'text-accent-primary font-semibold after:absolute after:-bottom-[2px] after:left-0 after:w-full after:h-[2px] after:bg-accent-primary'
+        : 'font-medium text-text-secondary hover:text-text-primary'
+    }`;
+
+  const thClass = "p-4 text-xs uppercase text-text-secondary font-semibold border-b border-border-color";
+  const tdClass = "p-4 text-sm border-b border-border-color text-text-primary align-middle";
+  const btnIconClass = "bg-transparent border-0 p-2 cursor-pointer rounded transition-colors duration-200 inline-flex items-center justify-center hover:bg-bg-primary";
+
   return (
-    <div className="org-setup-page">
+    <div className="flex flex-col">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="page-title">Organization Setup</h1>
+        <h1 className="text-2xl font-bold">Organization Setup</h1>
         <button className="btn btn-primary">
           <Plus size={16} /> Add {activeTab === 'departments' ? 'Department' : activeTab === 'categories' ? 'Category' : 'Employee'}
         </button>
@@ -35,21 +45,21 @@ const OrganizationSetup = () => {
 
       <div className="card">
         {/* Tabs */}
-        <div className="tabs mb-4">
+        <div className="flex border-b-2 border-border-color gap-6 mb-4">
           <button 
-            className={`tab-btn ${activeTab === 'departments' ? 'active' : ''}`}
+            className={tabBtnClass('departments')}
             onClick={() => setActiveTab('departments')}
           >
             Departments
           </button>
           <button 
-            className={`tab-btn ${activeTab === 'categories' ? 'active' : ''}`}
+            className={tabBtnClass('categories')}
             onClick={() => setActiveTab('categories')}
           >
             Categories
           </button>
           <button 
-            className={`tab-btn ${activeTab === 'employees' ? 'active' : ''}`}
+            className={tabBtnClass('employees')}
             onClick={() => setActiveTab('employees')}
           >
             Employees Directory
@@ -58,32 +68,32 @@ const OrganizationSetup = () => {
 
         {/* Tab Content: Departments */}
         {activeTab === 'departments' && (
-          <div className="table-responsive">
-            <table className="table">
+          <div className="w-full overflow-x-auto">
+            <table className="w-full border-collapse text-left">
               <thead>
                 <tr>
-                  <th>Department Name</th>
-                  <th>Department Head</th>
-                  <th>Parent Dept</th>
-                  <th>Status</th>
-                  <th className="text-right">Actions</th>
+                  <th className={thClass}>Department Name</th>
+                  <th className={thClass}>Department Head</th>
+                  <th className={thClass}>Parent Dept</th>
+                  <th className={thClass}>Status</th>
+                  <th className={`${thClass} text-right`}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {departments.map((dept) => (
-                  <tr key={dept.id}>
-                    <td><strong>{dept.name}</strong></td>
-                    <td>{dept.head}</td>
-                    <td>{dept.parent}</td>
-                    <td>
-                      <span className={`badge ${dept.status === 'Active' ? 'badge-success' : 'badge-secondary'}`}>
+                  <tr key={dept.id} className="hover:bg-black/[0.01]">
+                    <td className={tdClass}><strong>{dept.name}</strong></td>
+                    <td className={tdClass}>{dept.head}</td>
+                    <td className={tdClass}>{dept.parent}</td>
+                    <td className={tdClass}>
+                      <span className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${dept.status === 'Active' ? 'bg-alert-success-bg text-alert-success' : 'bg-[#f1f5f9] text-text-secondary'}`}>
                         {dept.status === 'Active' ? <CheckCircle size={14} className="mr-1"/> : <XCircle size={14} className="mr-1" />}
                         {dept.status}
                       </span>
                     </td>
-                    <td className="text-right">
-                      <button className="btn-icon text-primary"><Edit2 size={16} /></button>
-                      <button className="btn-icon text-danger"><Trash2 size={16} /></button>
+                    <td className={`${tdClass} text-right`}>
+                      <button className={`${btnIconClass} text-accent-primary`}><Edit2 size={16} /></button>
+                      <button className={`${btnIconClass} text-alert-danger`}><Trash2 size={16} /></button>
                     </td>
                   </tr>
                 ))}
@@ -94,23 +104,23 @@ const OrganizationSetup = () => {
 
         {/* Tab Content: Categories */}
         {activeTab === 'categories' && (
-          <div className="table-responsive">
-            <table className="table">
+          <div className="w-full overflow-x-auto">
+            <table className="w-full border-collapse text-left">
               <thead>
                 <tr>
-                  <th>Category Name</th>
-                  <th>Description</th>
-                  <th className="text-right">Actions</th>
+                  <th className={thClass}>Category Name</th>
+                  <th className={thClass}>Description</th>
+                  <th className={`${thClass} text-right`}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {categories.map((cat) => (
-                  <tr key={cat.id}>
-                    <td><strong>{cat.name}</strong></td>
-                    <td>{cat.description}</td>
-                    <td className="text-right">
-                      <button className="btn-icon text-primary"><Edit2 size={16} /></button>
-                      <button className="btn-icon text-danger"><Trash2 size={16} /></button>
+                  <tr key={cat.id} className="hover:bg-black/[0.01]">
+                    <td className={tdClass}><strong>{cat.name}</strong></td>
+                    <td className={tdClass}>{cat.description}</td>
+                    <td className={`${tdClass} text-right`}>
+                      <button className={`${btnIconClass} text-accent-primary`}><Edit2 size={16} /></button>
+                      <button className={`${btnIconClass} text-alert-danger`}><Trash2 size={16} /></button>
                     </td>
                   </tr>
                 ))}
@@ -121,37 +131,39 @@ const OrganizationSetup = () => {
 
         {/* Tab Content: Employees */}
         {activeTab === 'employees' && (
-          <div className="table-responsive">
-            <table className="table">
+          <div className="w-full overflow-x-auto">
+            <table className="w-full border-collapse text-left">
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Department</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th className="text-right">Actions</th>
+                  <th className={thClass}>Name</th>
+                  <th className={thClass}>Email</th>
+                  <th className={thClass}>Department</th>
+                  <th className={thClass}>Role</th>
+                  <th className={thClass}>Status</th>
+                  <th className={`${thClass} text-right`}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {employees.map((emp) => (
-                  <tr key={emp.id}>
-                    <td><strong>{emp.name}</strong></td>
-                    <td>{emp.email}</td>
-                    <td>{emp.dept}</td>
-                    <td>
-                      <span className={`badge ${emp.role.includes('Admin') || emp.role.includes('Head') || emp.role.includes('Manager') ? 'badge-primary' : 'badge-outline'}`}>
+                  <tr key={emp.id} className="hover:bg-black/[0.01]">
+                    <td className={tdClass}><strong>{emp.name}</strong></td>
+                    <td className={tdClass}>{emp.email}</td>
+                    <td className={tdClass}>{emp.dept}</td>
+                    <td className={tdClass}>
+                      <span className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${emp.role.includes('Admin') || emp.role.includes('Head') || emp.role.includes('Manager') ? 'bg-[#e0f2fe] text-accent-primary' : 'bg-transparent border border-border-color text-text-primary'}`}>
                         {emp.role}
                       </span>
                     </td>
-                    <td>
-                      <span className={`badge ${emp.status === 'Active' ? 'badge-success' : 'badge-secondary'}`}>
+                    <td className={tdClass}>
+                      <span className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${emp.status === 'Active' ? 'bg-alert-success-bg text-alert-success' : 'bg-[#f1f5f9] text-text-secondary'}`}>
                         {emp.status}
                       </span>
                     </td>
-                    <td className="text-right flex items-center justify-end gap-2">
-                       <button className="btn btn-outline" style={{padding: '0.25rem 0.5rem', fontSize: '0.75rem'}}>Promote</button>
-                      <button className="btn-icon text-primary"><Edit2 size={16} /></button>
+                    <td className={`${tdClass} text-right`}>
+                      <div className="flex items-center justify-end gap-2">
+                        <button className="btn btn-outline py-1 px-2 text-xs">Promote</button>
+                        <button className={`${btnIconClass} text-accent-primary`}><Edit2 size={16} /></button>
+                      </div>
                     </td>
                   </tr>
                 ))}
