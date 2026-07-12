@@ -10,7 +10,8 @@ import {
   FileText, 
   PieChart, 
   Bell,
-  LogOut
+  LogOut,
+  Zap
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import Navbar from './Navbar';
@@ -25,73 +26,73 @@ const AppLayout = () => {
   };
 
   const navItemClass = ({ isActive }) =>
-    `flex items-center px-6 py-3 gap-3 text-[0.95rem] font-medium transition-all duration-200 border-l-[3px] ${
-      isActive
-        ? 'bg-white/10 text-white border-accent-primary'
-        : 'text-sidebar-text border-transparent hover:bg-white/5 hover:text-white'
-    }`;
+    `sidebar-nav-item ${isActive ? 'active' : ''}`;
 
   return (
     <div className="flex h-screen w-screen overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-[260px] bg-sidebar-bg text-sidebar-text flex flex-col shrink-0">
-        <div className="p-6 border-b border-white/10 shrink-0 flex items-center gap-3">
-          <div className="bg-accent-primary rounded-full w-10 h-10 flex items-center justify-center text-white font-bold">
-            AF
+      <aside className="w-[240px] bg-sidebar-bg border-r border-border-color flex flex-col shrink-0">
+        {/* Logo */}
+        <div className="px-5 py-6 shrink-0 flex items-center gap-3">
+          <div className="bg-sidebar-active-bg rounded-xl w-9 h-9 flex items-center justify-center text-white">
+            <Zap size={18} />
           </div>
-          <h2 className="text-xl font-bold text-white m-0">AssetFlow</h2>
+          <h2 className="text-lg font-bold text-text-primary m-0 tracking-tight">AssetFlow</h2>
         </div>
         
-        <nav className="flex flex-col py-4 flex-1 overflow-y-auto gap-1">
+        {/* Main Navigation */}
+        <nav className="flex flex-col px-3 flex-1 overflow-y-auto gap-1 mt-2">
           <NavLink to="/" end className={navItemClass}>
-            <LayoutDashboard size={20} /> Dashboard
+            <LayoutDashboard size={18} /> Overview
           </NavLink>
           
-          {/* Admin Only */}
-          {user?.role === 'Admin' && (
-            <NavLink to="/organization-setup" className={navItemClass}>
-              <Settings size={20} /> Organization Setup
-            </NavLink>
-          )}
-
           <NavLink to="/assets" className={navItemClass}>
-            <Package size={20} /> Assets
+            <Package size={18} /> Assets
           </NavLink>
 
           <NavLink to="/allocation" className={navItemClass}>
-            <ArrowRightLeft size={20} /> Allocation & Transfer
+            <ArrowRightLeft size={18} /> Allocation
           </NavLink>
 
           <NavLink to="/booking" className={navItemClass}>
-            <CalendarDays size={20} /> Resource Booking
+            <CalendarDays size={18} /> Booking
           </NavLink>
 
           <NavLink to="/maintenance" className={navItemClass}>
-            <Wrench size={20} /> Maintenance
+            <Wrench size={18} /> Maintenance
           </NavLink>
 
           {['Admin', 'Asset Manager'].includes(user?.role) && (
             <NavLink to="/audit" className={navItemClass}>
-              <FileText size={20} /> Audit
+              <FileText size={18} /> Audit
             </NavLink>
           )}
 
           <NavLink to="/reports" className={navItemClass}>
-            <PieChart size={20} /> Reports
+            <PieChart size={18} /> Reports
           </NavLink>
-          
+
           <NavLink to="/notifications" className={navItemClass}>
-            <Bell size={20} /> Notifications
+            <Bell size={18} /> Notifications
           </NavLink>
+
+          {user?.role === 'Admin' && (
+            <NavLink to="/organization-setup" className={navItemClass}>
+              <Settings size={18} /> Organization
+            </NavLink>
+          )}
         </nav>
 
-        <div className="p-6 border-t border-white/10 shrink-0 flex justify-between items-center bg-sidebar-bg">
-          <div className="flex flex-col">
-            <span className="font-semibold text-white text-sm">{user?.name || 'User'}</span>
-            <span className="text-xs text-white/60">{user?.role || 'Role'}</span>
-          </div>
-          <button className="bg-transparent border-0 text-white/60 flex items-center gap-1 transition-colors duration-200 hover:text-white cursor-pointer" onClick={handleLogout}>
-            <LogOut size={18} /> Logout
+        {/* Bottom Section */}
+        <div className="px-3 pb-5 pt-3 border-t border-border-color shrink-0 flex flex-col gap-1">
+          <NavLink to="/organization-setup" className={navItemClass}>
+            <Settings size={18} /> Settings
+          </NavLink>
+          <button
+            className="sidebar-nav-item text-alert-danger hover:bg-alert-danger-bg w-full border-0"
+            onClick={handleLogout}
+          >
+            <LogOut size={18} /> Log Out
           </button>
         </div>
       </aside>
@@ -99,7 +100,7 @@ const AppLayout = () => {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col bg-bg-primary overflow-hidden">
         <Navbar />
-        <div className="flex-1 p-8 overflow-y-auto">
+        <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
           <Outlet />
         </div>
       </main>
