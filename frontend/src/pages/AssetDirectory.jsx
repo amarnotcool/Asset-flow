@@ -112,8 +112,15 @@ const AssetDirectory = () => {
       <div className="card mb-6 p-4">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           <div className="flex flex-1 gap-2 relative">
-            <Search size={0} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary" />
-            <input ref={searchInputRef} type="text" placeholder="Search by tag, asset name, or location..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="input pl-11 py-2.5 w-full max-w-lg" />
+            <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search by tag (e.g. AF-0114), asset name, or location..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="input pl-11 py-2.5 w-full max-w-lg"
+            />
           </div>
           <div className="flex flex-wrap gap-3 items-center">
             <select className="select w-auto min-w-[140px]" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>
