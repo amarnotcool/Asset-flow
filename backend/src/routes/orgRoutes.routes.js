@@ -4,7 +4,7 @@ import {
   getCategories, createCategory,
   getEmployees, updateEmployeeRole 
 } from '../controllers/orgController.js';
-import { protect, admin } from '../middleware/authMiddleware.js';
+import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -13,16 +13,16 @@ router.use(protect);
 
 router.route('/departments')
   .get(getDepartments)
-  .post(admin, createDepartment);
+  .post(authorizeRoles('Admin'), createDepartment);
 
 router.route('/categories')
   .get(getCategories)
-  .post(admin, createCategory);
+  .post(authorizeRoles('Admin', 'Asset Manager'), createCategory);
 
 router.route('/employees')
   .get(getEmployees);
 
 router.route('/employees/:id/role')
-  .put(admin, updateEmployeeRole);
+  .put(authorizeRoles('Admin'), updateEmployeeRole);
 
 export default router;

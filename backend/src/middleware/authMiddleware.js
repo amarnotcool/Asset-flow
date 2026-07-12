@@ -34,10 +34,16 @@ export const protect = asyncHandler(async (req, res, next) => {
   }
 });
 
-export const admin = (req, res, next) => {
-  if (req.user && req.user.role === 'Admin') {
+export const authorizeRoles = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user || !req.user.role) {
+      throw new ApiError(401, 'User role is undefined. Not authorized.');
+    }
+
+    if (!roles.includes(req.user.role)) {
+      throw new ApiError(403, `User role (${req.user.role}) is not authorized to access this route.`);
+    }
+
     next();
-  } else {
-    throw new ApiError(403, 'Not authorized as an admin');
-  }
+  };
 };
